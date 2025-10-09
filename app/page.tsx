@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -112,28 +113,38 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            {[
-              {
-                name: "End Grain Cutting Boards",
-                slug: "end-grain-cutting-boards",
-                image: "end grain cutting board with beautiful wood pattern",
-              },
-              { name: "Game Boards", slug: "game-boards", image: "handcrafted wooden chess board" },
-              { name: "Furniture", slug: "furniture", image: "rustic wooden dining table" },
-              { name: "Bar Ware", slug: "bar-ware", image: "wooden bottle opener and wine accessories" },
-            ].map((product, index) => (
-              <Link key={index} href={`/products/${product.slug}`} className="group cursor-pointer">
-                <div className="relative aspect-square rounded-lg overflow-hidden mb-4">
-                  <img
-                    src={`/.jpg?key=5lhnh&height=400&width=400&query=${product.image}`}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <h3 className="font-serif text-xl font-semibold text-foreground text-center">{product.name}</h3>
-              </Link>
-            ))}
-          </div>
+			  {[
+				{ name: "End Grain Cutting Boards", slug: "end-grain-cutting-boards", image: "/images/cutting-boards/eg-waffle.jpeg" },
+				{ name: "Game Boards",             slug: "game-boards",               image: "/images/game-boards/gb-chess-wal-map.jpeg" },
+				{ name: "Furniture",               slug: "furniture",                 image: "/images/furniture/tab-mah-map-ebo.jpeg" },
+				{ name: "Bar Ware",                slug: "bar-ware",                  image: "/images/bar-ware/chaos-lazysusan.jpeg" },
+			  ].map((product) => (
+				<Link key={product.slug} href={`/products/${product.slug}`} className="group block">
+				  {/* Square card with cover crop */}
+				  <div className="relative aspect-square rounded-lg overflow-hidden">
+					<Image
+					  src={product.image}
+					  alt={product.name}
+					  fill
+					  className="object-cover"             // no scaling -> stays crisp
+					  sizes="(min-width:1024px) 25vw, (min-width:640px) 45vw, 90vw"
+					  quality={90}
+					  priority={product.slug === "end-grain-cutting-boards"}
+					/>
+
+					{/* Always-visible overlay */}
+					<div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/25 to-transparent" />
+
+					{/* Centered title */}
+					<div className="pointer-events-none absolute inset-0 flex items-center justify-center px-3">
+					  <h3 className="font-serif text-white text-2xl md:text-3xl font-extrabold text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+						{product.name}
+					  </h3>
+					</div>
+				  </div>
+				</Link>
+			  ))}
+			</div>
 
           <div className="text-center mt-12">
             <Button asChild size="lg">
