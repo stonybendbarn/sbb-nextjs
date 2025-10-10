@@ -1,3 +1,4 @@
+// Inventory - \sbb-nextjs\app\inventory
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -5,40 +6,41 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Package } from "lucide-react"
+import Image from "next/image"
 
 const inventoryItems = [
   {
     id: 1,
     category: "cutting-boards",
     categoryName: "Cutting Boards",
-    name: "Walnut & Maple End Grain Board",
-    size: '12" x 18" x 1.5"',
-    price: "$125",
-    stock: "In Stock",
-    image: "walnut and maple end grain cutting board",
-    description: "Beautiful checkerboard pattern with food-safe finish",
+	name: "Chess Board End Grain Board",
+	size: '18.75" x 19.75" x 2"',
+	price: "$295",
+	stock: "In Stock",
+	image: "/images/cutting-boards/eg-chess-board.jpeg",
+	description: "Maple and walnut with a padauk border. Recessed handles make lifting this large board simpler.",
   },
   {
     id: 2,
     category: "cutting-boards",
     categoryName: "Cutting Boards",
-    name: "Cherry End Grain Board",
-    size: '14" x 20" x 1.75"',
-    price: "$145",
+    name: "Walnut & Maple End Grain Board",
+    size: '10.1" x 11.5" x 1.1"',
+    price: "$85",
     stock: "In Stock",
-    image: "cherry wood end grain cutting board",
-    description: "Rich cherry wood with natural color variation",
+    image: "/images/cutting-boards/IMG_0810.jpeg",
+    description: "End grain board perfect for cutting fresh vegetables.",
   },
   {
     id: 3,
-    category: "game-boards",
-    categoryName: "Game Boards",
-    name: "Walnut Chess Board",
-    size: '16" x 16"',
-    price: "$95",
+    category: "cutting-boards",
+    categoryName: "Cutting Boards",
+    name: "Walnut & Maple End Grain Board",
+    size: '10.1" x 11.5" x 1.1"',
+    price: "$85",
     stock: "In Stock",
-    image: "walnut chess board",
-    description: "Classic chess board with contrasting maple squares",
+    image: "/images/cutting-boards/maple-walnut.jpeg",
+    description: "End grain board perfect for cutting fresh vegetables.",
   },
   {
     id: 4,
@@ -198,15 +200,26 @@ export default function InventoryPage() {
                     .map((item) => (
                       <Card key={item.id} className="overflow-hidden flex flex-col">
                         <div className="relative aspect-square overflow-hidden bg-muted">
-                          <img
-                            src={`/.jpg?height=500&width=500&query=${item.image}`}
-                            alt={item.name}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                          />
-                          <Badge className="absolute top-4 right-4 bg-secondary text-secondary-foreground">
-                            {item.stock}
-                          </Badge>
-                        </div>
+						  {item.image?.startsWith("/images/") ? (
+							<Image
+							  src={item.image}          // e.g. "/images/cutting-boards/IMG_0809.jpeg"
+							  alt={item.name}
+							  fill
+							  className="object-cover"
+							  sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+							  quality={92}
+							/>
+						  ) : (
+							// fallback for items that still have a description instead of a path
+							<div className="absolute inset-0 grid place-items-center text-muted-foreground">
+							  <span className="px-3 text-sm">Image coming soon</span>
+							</div>
+						  )}
+
+						  <Badge className="absolute top-4 right-4 bg-secondary text-secondary-foreground">
+							{item.stock}
+						  </Badge>
+						</div>
                         <CardHeader>
                           <div className="flex items-start justify-between gap-2">
                             <CardTitle className="font-serif text-xl">{item.name}</CardTitle>

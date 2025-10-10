@@ -1,5 +1,6 @@
-import Link from "next/link"
-import { Facebook, Instagram, Mail, Phone } from "lucide-react"
+// components/footer.tsx
+import Link from "next/link";
+import { Facebook, Instagram, Mail } from "lucide-react";
 
 export function Footer() {
   return (
@@ -34,6 +35,7 @@ export function Footer() {
                   Inventory
                 </Link>
               </li>
+              {/* 
               <li>
                 <Link
                   href="/gallery"
@@ -42,6 +44,7 @@ export function Footer() {
                   Gallery
                 </Link>
               </li>
+              */}
               <li>
                 <Link
                   href="/custom-orders"
@@ -70,31 +73,36 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-primary-foreground/80">
                 <Mail className="h-4 w-4" />
-                <span>info@stonybendbarn.com</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm text-primary-foreground/80">
-                <Phone className="h-4 w-4" />
-                <span>(555) 123-4567</span>
+                <a href="mailto:stonybendbarn@gmail.com" className="hover:underline">
+                  stonybendbarn@gmail.com
+                </a>
               </li>
             </ul>
+
             <div className="flex items-center gap-4 mt-6">
               <a
-                href="#"
+                href="https://www.facebook.com/stonybendbarn"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
                 aria-label="Facebook"
+                title="Facebook"
               >
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/stonybendbarn"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-primary-foreground/80 hover:text-primary-foreground transition-colors"
                 aria-label="Instagram"
+                title="Instagram"
               >
                 <Instagram className="h-5 w-5" />
               </a>
             </div>
           </div>
-        </div>
+        </div> {/* <-- close the grid */}
 
         <div className="border-t border-primary-foreground/20 mt-12 pt-8 text-center">
           <p className="text-sm text-primary-foreground/60">
@@ -103,5 +111,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

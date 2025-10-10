@@ -1,3 +1,4 @@
+//[category] \sbb-nextjs\app\products\[category]
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -18,42 +19,82 @@ const categoryData: Record<
     }>
   }
 > = {
-  "end-grain-cutting-boards": {
+  "cutting-boards": {
     name: "End Grain Cutting Boards",
     description: "Premium end grain cutting boards crafted from select hardwoods for durability and beauty.",
     products: [
       {
         name: "3D Waffle End Grain Board",
         description:
-          'The 3D Waffle End Grain Board is made with a dark, medium, and light wood to create the 3D illusion. The board can be made to any size but is typically 12"x18"x 1.5".',
-        size: '12"x18"x 1.5"',
+          "The 3D Waffle End Grain Board is made with a dark, medium, and light wood to create the 3D illusion.",          
+        size: '12" x 18" x 1.5"',
         price: "$325",
-        image: "/cutting-boards/eg-waffle.jpeg",
+        image: "/images/cutting-boards/eg-waffle.jpeg",
       },
       {
         name: "Weave End Grain Board",
         description:
-          'The Weave End Grain Board is made with two contrasting woods to give the illusion of a weave though all lines are straight. The board can be made to any size but is typically 12"x18"x 1.5".',
-        size: '12"x18"x 1.5"',
-        price: "$275",
-        image: "/cutting-boards/zigzag.jpeg",
+          "The Weave End Grain Board is made with two contrasting woods to give the illusion of a weave though all lines are straight.",
+        size: '12" x 18" x 1.5"',
+        price: "$225",
+        image: "/images/cutting-boards/eg-cherry-maple.jpeg",
       },
+      {
+        name: "Chess Board End Grain Board",
+        description:
+          "Classic chess board pattern with alternating light and dark woods. Perfect for everyday use and makes a beautiful display piece.",
+        size: '14" x 20" x 1.5"',
+        price: "$295",
+        image: "/images/cutting-boards/eg-chess-board.jpeg",
+      },	  
+      {
+        name: "Brick & Mortar End Grain Board",
+        description:
+          'Classic walnut and maple brick and mortar cutting board.',
+        size: '12" x 18" x 1.5"',
+        price: "$250",
+        image: "/images/cutting-boards/brick-mortar.jpeg",
+      },	
+      {
+        name: "Chaos End Grain Board",
+        description:
+          'The Chaos board is made from various woods.',
+        size: '12" x 18" x 1.5"',
+        price: "$325",
+        image: "/images/cutting-boards/eg-chaos.jpeg",
+      },      
+	  {
+        name: "Optical Illusion End Grain Board",
+        description:
+          'The Optical Illusion End Grain Board is made with three contrasting woods to give the illusion of depth.',
+        size: '16" x 16" x 1.5"',
+        price: "$200",
+        image: "/images/cutting-boards/eg-opt-warp.jpeg",
+      },	  
       {
         name: "Stair Step End Grain Board",
         description:
-          'The Stair Step End Grain Board is made with two contrasting woods to highlight the stair step pattern. The board can be made to any size but is typically 12"x18"x 1.5".',
-        size: '12"x18"x 1.5"',
-        price: "$275",
-        image: "/cutting-boards/step-board.jpeg",
+          'The Stair Step End Grain Board is made with two contrasting woods to highlight the stair step pattern.',
+        size: '16" x 16" x 1.5"',
+        price: "$180",
+        image: "/images/cutting-boards/step-board.jpeg",
       },
       {
-        name: "Checkerboard End Grain Board",
+        name: "Zig-Zag End Grain Board",
         description:
-          "Classic checkerboard pattern with alternating light and dark woods. Perfect for everyday use and makes a beautiful display piece.",
-        size: '14"x20"x 1.5"',
-        price: "$295",
-        image: "/cutting-boards/eg-chess-board.jpeg",
-      },
+          'Zig-zag pattern with alternating light and dark woods. Perfect for everyday use and makes a beautiful display piece.',
+        size: '16" x 16" x 1.5"',
+        price: "$180",
+        image: "/images/cutting-boards/zigzag.jpeg",
+      },	
+      {
+        name: "End Grain Board",
+        description:
+          'End grain board perfect for cutting fresh vegetables..',
+        size: '10" x 10" x 1"',
+        price: "$85",
+        image: "/images/cutting-boards/maple-walnut.jpeg",
+      },	  
     ],
   },
   "game-boards": {
@@ -62,53 +103,81 @@ const categoryData: Record<
     products: [
       {
         name: "Chess Board",
-        description: "Traditional chess board with contrasting woods and smooth finish. Includes storage for pieces.",
-        size: '16"x16"',
-        price: "$195",
-        image: "/game-boards/gb-chess-wal-map.jpeg",
+        description: "Traditional chess board with contrasting woods and smooth finish.",
+        size: '18" x 18"',
+        price: "$125",
+        image: "/images/game-boards/gb-chess-wal-map.jpeg",
       },
       {
-        name: "Checkers Board",
-        description: "Classic checkers design with beautiful wood grain patterns.",
-        size: '14"x14"',
-        price: "$145",
-        image: "/game-boards/mini-chess.jpeg",
+        name: "Mini Chess Board",
+        description: "Laser engraved small chess board and pieces - perfect for practicing!",
+        size: '6" x 6"',
+        price: "$50",
+        image: "/images/game-boards/mini-chess.jpeg",
       },
       {
+        name: "Morris Board",
+        description: "Classic strategy play—place, move, and ‘mill’ three-in-a-row to remove your opponent’s pieces",
+        size: '9" x 9"',
+        price: "$75",
+        image: "/images/game-boards/IMG_5484.JPEG",
+      },
+	  {
+        name: "Cribbage Board - Multiple Woods",
+        description: "Multiple wood cribbabe board with pegs and cards.",
+        size: '16" x 5"',
+        price: "$60",
+        image: "/images/game-boards/gb-cb-mult.JPEG",
+      },	  
+	  {
         name: "Cribbage Board",
-        description: "Elegant cribbage board with brass pegs and card storage.",
-        size: '12"x4"',
-        price: "$85",
-        image: "/game-boards/IMG_5484.JPEG",
-      },
+        description: "Single wood cribbabe board with pegs and cards.",
+        size: '16" x 5"',
+        price: "$50",
+        image: "/images/game-boards/IMG_6266.JPEG",
+      },	  
     ],
   },
   "cheese-boards": {
-    name: "Cheese Boards",
+    name: "Cheese & Charcuterie Boards",
     description: "Elegant serving boards perfect for entertaining and special occasions.",
     products: [
       {
-        name: "Striped Cheese Board with Handle",
-        description:
-          "Beautiful striped pattern with integrated handle for easy serving. Perfect for charcuterie and cheese displays.",
-        size: '16"x10"',
-        price: "$95",
-        image: "/cheese-boards/cb-bld-wal-bch.jpeg",
-      },
-      {
-        name: "Round Cheese Board",
-        description: "Perfect for parties and gatherings with rotating base option.",
-        size: '12" diameter',
-        price: "$75",
-        image: "/cheese-boards/cbeg-chaos.jpeg",
-      },
-      {
-        name: "Live Edge Serving Board",
-        description: "Natural edge for rustic elegance, each piece is unique.",
-        size: "Varies",
+        name: "Chaos End Grain Cheese Board",
+        description: "Unique and one of a kind end grain cheese board.",
+        size: '9" x 5.75" x 1"',
         price: "$125",
-        image: "/cheese-boards/cb-cherry.jpeg",
+        image: "/images/cheese-boards/cbeg-chaos.jpeg",
       },
+      {
+        name: "Chaos End Grain Cheese Board",
+        description: "Unique and one of a kind end grain cheese board.",
+        size: '9" x 5.75" x 1"',
+        price: "$100",
+        image: "/images/cheese-boards/eg-chaos.jpeg",
+      },	  
+      {
+        name: "Striped Cheese Board",
+        description:
+          "Beautiful striped pattern made with bloodwood, beech, cherry, and walnut.",
+        size: '9" x 5.75" x 1"',
+        price: "$65",
+        image: "/images/cheese-boards/cb-bld-wal-bch.jpeg",
+      },
+      {
+        name: "Cheese Board",
+        description: "Single wood cheese board.",
+        size: '9" x 5.75" x 1"',
+        price: "$50",
+        image: "/images/cheese-boards/cb-cherry.jpeg",
+      },
+      {
+        name: "Charcuterie Board",
+        description: "Single wood charcuterie board.",
+        size: '15" x 7" x 1"',
+        price: "$60",
+        image: "/images/cheese-boards/char-maple.jpeg",
+      },	  
     ],
   },
   coasters: {
@@ -116,26 +185,33 @@ const categoryData: Record<
     description: "Protective and stylish coasters for your furniture.",
     products: [
       {
+        name: "Custom Engraved Coasters with Holder",
+        description: "Personalized with your design, logo, or monogram.",
+        size: '4" x 4" each',
+        price: "$50",
+        image: "/images/coasters/IMG_5409.jpeg",
+      },	
+      {
         name: "Coaster Set with Holder",
         description:
-          "Set of six matching coasters with beautiful wooden holder. Protects surfaces while adding natural beauty to your home.",
-        size: '4"x4" each',
-        price: "$65",
-        image: "/coasters/goncalo-box.jpeg",
-      },
-      {
-        name: "Coaster Set (4)",
-        description: "Set of four matching coasters with contrasting wood patterns.",
-        size: '4"x4" each',
+          "Set of four matching coasters with beautiful wooden holder. Protects surfaces while adding natural beauty to your home.",
+        size: '4" x 4" each',
         price: "$45",
-        image: "/coasters/goncalo-alves-stack.jpeg",
+        image: "/images/coasters/goncalo-box.jpeg",
       },
       {
         name: "Custom Engraved Coasters",
         description: "Personalized with your design, logo, or monogram.",
-        size: '4"x4" each',
-        price: "$75",
-        image: "/coasters/striped.jpeg",
+        size: '4" x 4" each',
+        price: "$30",
+        image: "/images/coasters/silverback.jpeg",
+      },
+      {
+        name: "Coaster Set (4)",
+        description: "Set of four coasters - single wood.",
+        size: '4" x 4" each',
+        price: "$20",
+        image: "/images/coasters/goncalo-alves-stack.jpeg",
       },
     ],
   },
@@ -144,26 +220,26 @@ const categoryData: Record<
     description: "Weather-resistant pieces designed for outdoor enjoyment.",
     products: [
       {
-        name: "Adirondack Chair",
-        description: "Classic outdoor seating built to last with weather-resistant finish.",
-        size: "Standard",
-        price: "$285",
-        image: "/outdoor-items/IMG_3603.JPEG",
+        name: "Fishing Net",
+        description: "Durable outdoor net with environmentally friendly netting and magnetic clip.",
+        size: "3 feet",
+        price: "$190",
+        image: "/images/outdoor-items/IMG_6584.jpeg",
       },
       {
-        name: "Picnic Table",
-        description: "Durable outdoor dining for family gatherings.",
-        size: "6 feet",
-        price: "$425",
-        image: "/outdoor-items/IMG_6583.jpeg",
+        name: "Fishing Net",
+        description: "Durable outdoor net with environmentally friendly netting and magnetic clip.",
+        size: "3 feet",
+        price: "$190",
+        image: "/images/outdoor-items/figured-maple.jpeg",
       },
       {
-        name: "Planter Box",
-        description: "Cedar planter boxes in various sizes for your garden.",
-        size: "Various sizes",
-        price: "$95+",
-        image: "/outdoor-items/figured-maple.jpeg",
-      },
+        name: "Cigar Caddy",
+        description: "Magnetic cigar caddy to keep your cigar dry and at your fingertips.",
+        size: '2" x 4"',
+        price: "$20",
+        image: "/images/outdoor-items/IMG_3603.JPEG",
+      },	  
     ],
   },
   furniture: {
@@ -171,50 +247,43 @@ const categoryData: Record<
     description: "Custom furniture pieces that become family heirlooms.",
     products: [
       {
-        name: "Dining Table",
-        description: "Made to your specifications with choice of wood and finish.",
+        name: "Butcher Block Table",
+        description: "Solid hardwood butcher block table with a thick end-grain top, sturdy tapered legs, and a hand-rubbed finish — built for daily prep and decades of use.",
         size: "Custom",
-        price: "$1,200+",
-        image: "/furniture/bb-table.jpeg",
+        price: "$2,200",
+        image: "/images/furniture/bb-table.jpeg",
       },
       {
-        name: "Coffee Table",
-        description: "Centerpiece for your living room with storage options available.",
-        size: "Various",
-        price: "$650+",
-        image: "/furniture/side-table-cherry.jpeg",
-      },
-      {
-        name: "Bookshelf",
-        description: "Built-in or freestanding options to fit your space perfectly.",
+        name: "Side Table",
+        description: "Solid hardwood side table with a lower shelf, square plug accents, and a hand-rubbed finish — clean, sturdy, and timeless.",
         size: "Custom",
-        price: "$800+",
-        image: "/furniture/stackable-tables.jpeg",
+        price: "$250",
+        image: "/images/furniture/side-tables.jpeg",
       },
     ],
   },
   "bar-ware": {
-    name: "Bar Ware",
+    name: "Bar & Kitchen Ware",
     description: "Sophisticated accessories for the home bar enthusiast.",
     products: [
       {
-        name: "Bottle Opener",
+        name: "Bottle Stop",
         description: "Wall-mounted or handheld with beautiful wood grain.",
         size: '6" length',
         price: "$25",
-        image: "/bar-ware/bs-bocote.jpeg",
+        image: "/images/bar-ware/bs-bocote.jpeg",
       },
       {
         name: "Wine Bottle Stopper",
         description: "Handturned with unique grain pattern, each one is unique.",
         size: "Standard",
         price: "$18",
-        image: "/bar-ware/bs-maple-ebony.jpeg",
+        image: "/images/bar-ware/bs-maple-ebony.jpeg",
       },
       {
         name: "Flight Board",
         description: "Perfect for beer or wine tasting with friends.",
-        size: '16"x6"',
+        size: '16" x 6"',
         price: "$55",
         image: "/bar-ware/flight-boards.jpeg",
       },
@@ -270,6 +339,7 @@ export default function CategoryPage({ params }: { params: { category: string } 
                 <div className="flex-1 flex flex-col">
                   <h3 className="font-serif text-2xl font-bold text-foreground mb-3">{product.name}</h3>
                   <p className="text-muted-foreground leading-relaxed mb-4 flex-1">{product.description}</p>
+				  <p className="text-foreground">Size: <span className="text-muted-foreground leading-relaxed mb-4 flex-1">{product.size}</span></p>
                   <div className="space-y-3">
                     <p className="text-lg font-semibold text-primary">Starting Price: {product.price}</p>
                     <div className="flex gap-3">

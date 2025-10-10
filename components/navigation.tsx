@@ -12,7 +12,7 @@ export function Navigation() {
   const navLinks = [
     { href: "/products", label: "Products" },
     { href: "/inventory", label: "Inventory" },
-    { href: "/gallery", label: "Gallery" },
+    //{ href: "/gallery", label: "Gallery" },
     { href: "/custom-orders", label: "Custom Orders" },
     { href: "/events", label: "Events" },
   ]

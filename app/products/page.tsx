@@ -1,42 +1,43 @@
+// Products folder
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import Link from "next/link"
 
 const productCategories = [
   {
-    id: "end-grain-cutting-boards",
+    id: "cutting-boards",
     name: "End Grain Cutting Boards",
-    image: "end grain cutting board with checkerboard pattern",
+    image: "/images/cutting-boards/eg-pad-ash.jpeg",
   },
   {
     id: "game-boards",
     name: "Game Boards",
-    image: "wooden game board with chess pieces",
+    image: "/images/game-boards/gb-chess-wal-map.jpeg",
   },
   {
     id: "cheese-boards",
-    name: "Cheese Boards",
-    image: "wooden cheese board with handle and striped pattern",
+    name: "Cheese & Charcuterie Boards",
+    image: "/images/cheese-boards/cbeg-chaos.jpeg",
   },
   {
     id: "coasters",
     name: "Coasters",
-    image: "wooden coaster set in holder",
+    image: "/images/coasters/goncalo-box2.jpeg",
   },
   {
     id: "outdoor-items",
     name: "Outdoor Items",
-    image: "outdoor wooden furniture on patio",
+    image: "/images/outdoor-items/IMG_6584.jpeg",
   },
   {
     id: "furniture",
     name: "Furniture",
-    image: "rustic wooden dining table",
+    image: "/images/furniture/tab-mah-map-ebo.jpeg",
   },
   {
     id: "bar-ware",
-    name: "Bar Ware",
-    image: "wooden bottle opener and wine accessories",
+    name: "Bar & Kitchen Ware",
+    image: "/images/bar-ware/chaos-lazysusan.jpeg",
   },
 ]
 
@@ -70,7 +71,7 @@ export default function ProductsPage() {
                 className="group relative aspect-square overflow-hidden rounded-lg"
               >
                 <img
-                  src={`/.jpg?key=thkcq&height=600&width=600&query=${category.image}`}
+                  src={category.image}
                   alt={category.name}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />

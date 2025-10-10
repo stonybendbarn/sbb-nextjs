@@ -1,9 +1,28 @@
-import Image from "next/image";
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Hammer, Users, Sparkles } from "lucide-react"
-import Link from "next/link"
+// app folder
+import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Hammer, Users, Sparkles } from "lucide-react";
+import Link from "next/link";
+import Image, { StaticImageData } from "next/image";
+
+import endGrain from "@/public/images/cutting-boards/eg-waffle.jpeg";
+import gameBoards from "@/public/images/game-boards/gb-chess-wal-map.jpeg";
+import cheeseBoards from "@/public/images/cheese-boards/cbeg-chaos.jpeg";
+import furniture from "@/public/images/furniture/tab-mah-map-ebo.jpeg";
+import barWare from "@/public/images/bar-ware/chaos-lazysusan.jpeg";
+import outdoorItems from "@/public/images/outdoor-items/IMG_6584.jpeg";
+
+type Card = { name: string; slug: string; image: StaticImageData };
+
+const featured: Card[] = [
+  { name: "End Grain Cutting Boards", slug: "cutting-boards", image: endGrain },
+  { name: "Game Boards", slug: "game-boards", image: gameBoards },
+  { name: "Cheese & Charcuterie Boards", slug: "cheese-boards", image: cheeseBoards },
+  { name: "Furniture", slug: "furniture", image: furniture },
+  { name: "Bar & Kitchen Ware", slug: "bar-ware", image: barWare },
+  { name: "Outdoor Items", slug: "outdoor-items", image: outdoorItems },  
+];
 
 export default function HomePage() {
   return (
@@ -59,7 +78,6 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-            {/* Our Story */}
             <div className="bg-card rounded-lg p-8 shadow-sm">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
                 <Users className="h-6 w-6 text-primary" />
@@ -71,7 +89,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Our Process */}
             <div className="bg-card rounded-lg p-8 shadow-sm">
               <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-6">
                 <Hammer className="h-6 w-6 text-secondary" />
@@ -84,7 +101,6 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Our Services */}
             <div className="bg-card rounded-lg p-8 shadow-sm">
               <div className="w-12 h-12 bg-accent-foreground/10 rounded-lg flex items-center justify-center mb-6">
                 <Sparkles className="h-6 w-6 text-accent-foreground" />
@@ -100,7 +116,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products Preview */}
+      {/* Featured Products (3 across) */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -112,39 +128,31 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-			  {[
-				{ name: "End Grain Cutting Boards", slug: "end-grain-cutting-boards", image: "/images/cutting-boards/eg-waffle.jpeg" },
-				{ name: "Game Boards",             slug: "game-boards",               image: "/images/game-boards/gb-chess-wal-map.jpeg" },
-				{ name: "Furniture",               slug: "furniture",                 image: "/images/furniture/tab-mah-map-ebo.jpeg" },
-				{ name: "Bar Ware",                slug: "bar-ware",                  image: "/images/bar-ware/chaos-lazysusan.jpeg" },
-			  ].map((product) => (
-				<Link key={product.slug} href={`/products/${product.slug}`} className="group block">
-				  {/* Square card with cover crop */}
-				  <div className="relative aspect-square rounded-lg overflow-hidden">
-					<Image
-					  src={product.image}
-					  alt={product.name}
-					  fill
-					  className="object-cover"             // no scaling -> stays crisp
-					  sizes="(min-width:1024px) 25vw, (min-width:640px) 45vw, 90vw"
-					  quality={90}
-					  priority={product.slug === "end-grain-cutting-boards"}
-					/>
-
-					{/* Always-visible overlay */}
-					<div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/25 to-transparent" />
-
-					{/* Centered title */}
-					<div className="pointer-events-none absolute inset-0 flex items-center justify-center px-3">
-					  <h3 className="font-serif text-white text-2xl md:text-3xl font-extrabold text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
-						{product.name}
-					  </h3>
-					</div>
-				  </div>
-				</Link>
-			  ))}
-			</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {featured.map((product, i) => (
+              <Link key={product.slug} href={`/products/${product.slug}`} className="group block">
+                <figure className="relative aspect-square rounded-2xl overflow-hidden ring-1 ring-black/5 shadow-sm">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    quality={95}
+                    placeholder="blur"
+                    priority={i === 0}
+                    // Tuned for 3-column layout; intentionally generous for Hi-DPI
+                    sizes="(min-width:1536px) 620px, (min-width:1280px) 560px, (min-width:1024px) 520px, (min-width:640px) 50vw, 95vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/15 to-transparent" />
+                  <figcaption className="pointer-events-none absolute inset-0 flex items-center justify-center px-3">
+                    <h3 className="font-serif text-white text-2xl md:text-3xl font-extrabold text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]">
+                      {product.name}
+                    </h3>
+                  </figcaption>
+                </figure>
+              </Link>
+            ))}
+          </div>
 
           <div className="text-center mt-12">
             <Button asChild size="lg">
@@ -157,7 +165,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* CTA */}
       <section className="py-16 md:py-24 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-balance">
@@ -177,5 +185,5 @@ export default function HomePage() {
 
       <Footer />
     </div>
-  )
+  );
 }
