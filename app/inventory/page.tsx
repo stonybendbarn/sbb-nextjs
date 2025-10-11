@@ -1,12 +1,14 @@
+"use client";
+
 // Inventory - \sbb-nextjs\app\inventory
-import { Navigation } from "@/components/navigation"
-import { Footer } from "@/components/footer"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Package } from "lucide-react"
-import Image from "next/image"
+import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Package } from "lucide-react";
+import Image from "next/image";
 
 // --- Sale styling config ---
 // Change SALE_THEME between: "amber", "orange", "green", "blue", "rose"
@@ -20,17 +22,80 @@ const SALE_STYLES: Record<string, { button: string; badge: string }> = {
 const SALE_THEME = "green";
 // --- end sale styling config ---
 
-const inventoryItems = [
+// Helper: parse a price string like "$295" -> 29500 cents
+function priceToCents(price: string | undefined): number | null {
+  if (!price) return null;
+  const num = Number(String(price).replace(/[^0-9.]/g, ""));
+  if (Number.isNaN(num)) return null;
+  return Math.round(num * 100);
+}
+
+// Helper: choose a shipping tier by category
+// - boards (cutting-boards): $50 insured
+// - coasters / cheese-boards: $15 small parcel
+// - furniture defaults to $50 for now (adjust as you like)
+function getShipTier(item: InventoryItem): "board" | "small" | "pickup" {
+  if (item.category === "coasters" || item.category === "cheese-boards") return "small";
+  if (item.category === "cutting-boards") return "board";
+  return "board";
+}
+
+// Client-side: create Checkout Session then redirect
+async function buy(item: InventoryItem) {
+  const isOnSale = (item.stock || "").toLowerCase().includes("on sale");
+  const cents = priceToCents(isOnSale && item.salePrice ? item.salePrice : item.price);
+  if (!cents) return alert("Sorry, this item doesn't have a valid price.");
+
+  const body = {
+    name: item.name,
+    priceInCents: cents,
+    productId: item.id,
+    image: item.image?.startsWith("/images/") ? `${location.origin}${item.image}` : undefined,
+    shipTier: getShipTier(item),
+  };
+
+  const res = await fetch("/api/checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const msg = await res.text();
+    console.error("Checkout error:", msg);
+    return alert("Checkout failed. Please try again or contact us.");
+  }
+
+  const { url } = await res.json();
+  if (!url) return alert("No checkout URL returned.");
+  window.location.href = url;
+}
+
+// Types for items
+type InventoryItem = {
+  id: number;
+  category: string;
+  categoryName: string;
+  name: string;
+  size: string;
+  price: string;
+  salePrice?: string;
+  stock: string;
+  image: string;
+  description: string;
+};
+
+const inventoryItems: InventoryItem[] = [
   {
     id: 1,
     category: "cutting-boards",
     categoryName: "Cutting Boards",
-	name: "Walnut, Maple, and Padauk End Grain Board",
-	size: '18.75" x 19" x 2"',
-	price: "$295",
-	stock: "In Stock",
-	image: "/images/cutting-boards/eg-chess-board.jpeg",
-	description: "Classic chess board wood wrapped in with a paduak board and brass feet. Recessed handles make lifting this large board simpler.",
+    name: "Walnut, Maple, and Padauk End Grain Board",
+    size: '18.75" x 19" x 2"',
+    price: "$295",
+    stock: "In Stock",
+    image: "/images/cutting-boards/eg-chess-board.jpeg",
+    description: "Classic chess board wood wrapped in with a paduak board and brass feet. Recessed handles make lifting this large board simpler.",
   },
   {
     id: 2,
@@ -50,7 +115,7 @@ const inventoryItems = [
     name: "Chaos End Grain Board",
     size: '12.5" x 16" x 1.75"',
     price: "$325",
-	salePrice: "$225",	
+    salePrice: "$225",
     stock: "On Sale",
     image: "/images/cutting-boards/eg-chaos2.jpeg",
     description: "Cherry, maple, and padauk end grain board with brass feet.",
@@ -98,7 +163,7 @@ const inventoryItems = [
     stock: "In Stock",
     image: "/images/coasters/canary3.jpeg",
     description: "Set of 4 canary wood coasters.",
-  },  
+  },
   {
     id: 8,
     category: "cheese-boards",
@@ -142,7 +207,7 @@ const inventoryItems = [
     stock: "In Stock",
     image: "/images/furniture/plant-stand-tall.jpeg",
     description: "Mahogany and maple plant stand.",
-  },  
+  },
   {
     id: 12,
     category: "bar-ware",
@@ -155,7 +220,7 @@ const inventoryItems = [
     description: "Mahogany bottle opener with magnet.",
   },
   {
-    id: 12,
+    id: 1201,
     category: "bar-ware",
     categoryName: "Bar Ware",
     name: "Bottle Opener",
@@ -166,7 +231,7 @@ const inventoryItems = [
     description: "Purpleheart, maple, and mahogany bottle opener with magnet.",
   },
   {
-    id: 13,
+    id: 1202,
     category: "bar-ware",
     categoryName: "Bar Ware",
     name: "Bottle Opener",
@@ -177,7 +242,7 @@ const inventoryItems = [
     description: "Purpleheart, maple, and mahogany bottle opener with magnet.",
   },
   {
-    id: 12,
+    id: 1203,
     category: "bar-ware",
     categoryName: "Bar Ware",
     name: "Bottle Opener",
@@ -186,8 +251,8 @@ const inventoryItems = [
     stock: "In Stock",
     image: "/images/bar-ware/bo-mult3.jpeg",
     description: "Purpleheart, maple, and mahogany bottle opener with magnet.",
-  },  
-]
+  },
+];
 
 const categories = [
   { value: "all", label: "All Items" },
@@ -198,7 +263,7 @@ const categories = [
   { value: "outdoor", label: "Outdoor Items" },
   { value: "furniture", label: "Furniture" },
   { value: "barware", label: "Bar Ware" },
-]
+];
 
 export default function InventoryPage() {
   return (
@@ -218,6 +283,7 @@ export default function InventoryPage() {
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-pretty">
               Browse our available items ready to ship. All pieces are handcrafted and in stock now.
             </p>
+            <p className="mt-3 text-sm text-muted-foreground">$50 insured US shipping on boards · $15 on small items · Free local pickup (Wake Forest, NC)</p>
           </div>
         </div>
       </section>
@@ -245,84 +311,87 @@ export default function InventoryPage() {
                     .filter((item) => category.value === "all" || item.category === category.value)
                     .map((item) => {
                       const isOnSale = item.stock?.toLowerCase().includes("on sale");
-					  const subject = `Interested in ${item.name}`;
-					  const priceText = (isOnSale && item.salePrice) ? item.salePrice : item.price;
-					  // Use real newlines; join with \r\n for widest email-client compatibility
-					  const body = [  
-						"Hi Stony Bend Barn,",  
-						"",  `I'm interested in "${item.name}" (${item.size}) listed at ${priceText}.`,
-						"",
-						"Please let me know availability and next steps."
-						].join("\r\n");
-					  const mailto = `mailto:info@stonybendbarn.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                      return (
-                      <Card key={item.id} className="overflow-hidden flex flex-col">
-                        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-						  {item.image?.startsWith("/images/") ? (
-							<Image
-							  src={item.image}          // e.g. "/images/cutting-boards/IMG_0809.jpeg"
-							  alt={item.name}
-							  fill
-							  className="object-contain"
-							  sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-							  quality={92}
-							/>
-						  ) : (
-							// fallback for items that still have a description instead of a path
-							<div className="absolute inset-0 grid place-items-center text-muted-foreground">
-							  <span className="px-3 text-sm">Image coming soon</span>
-							</div>
-						  )}
+                      const subject = `Interested in ${item.name}`;
+                      const priceText = (isOnSale && item.salePrice) ? item.salePrice : item.price;
+                      const body = [
+                        "Hi Stony Bend Barn,",
+                        "",
+                        `I'm interested in "${item.name}" (${item.size}) listed at ${priceText}.`,
+                        "",
+                        "Please let me know availability and next steps.",
+                      ].join("\r\n");
+                      const mailto = `mailto:info@stonybendbarn.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-						  <Badge className={"absolute top-4 right-4 " + (isOnSale ? SALE_STYLES[SALE_THEME].badge : "bg-secondary text-secondary-foreground")}>
-							{item.stock}
-						  </Badge>
-						</div>
-                        <CardHeader className="p-3 pb-0 space-y-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <CardTitle className="font-serif text-xl leading-tight !mt-0 !mb-0">{item.name}</CardTitle>
+                      const showBuyNow = item.stock?.toLowerCase().includes("in stock") || isOnSale;
+
+                      return (
+                        <Card key={item.id} className="overflow-hidden flex flex-col">
+                          <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                            {item.image?.startsWith("/images/") ? (
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                fill
+                                className="object-contain"
+                                sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+                                quality={92}
+                              />
+                            ) : (
+                              <div className="absolute inset-0 grid place-items-center text-muted-foreground">
+                                <span className="px-3 text-sm">Image coming soon</span>
+                              </div>
+                            )}
+
+                            <Badge className={"absolute top-4 right-4 " + (isOnSale ? SALE_STYLES[SALE_THEME].badge : "bg-secondary text-secondary-foreground")}>
+                              {item.stock}
+                            </Badge>
                           </div>
-                          <CardDescription className="mt-1">{item.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-1 px-3 pt-1 pb-1">
-                          <div className="space-y-0.5">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">Size:</span>
-                              <span className="text-sm font-medium">{item.size}</span>
+                          <CardHeader className="p-3 pb-0 space-y-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <CardTitle className="font-serif text-xl leading-tight !mt-0 !mb-0">{item.name}</CardTitle>
                             </div>
-							{/*
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm text-muted-foreground">Category:</span>
-                              <span className="text-sm font-medium">{item.categoryName}</span>
+                            <CardDescription className="mt-1">{item.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="flex-1 px-3 pt-1 pb-1">
+                            <div className="space-y-0.5">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-muted-foreground">Size:</span>
+                                <span className="text-sm font-medium">{item.size}</span>
+                              </div>
+                              <div className="flex justify-between items-center pt-1">
+                                <span className="text-sm text-muted-foreground">Price:</span>
+                                {isOnSale && item.salePrice ? (
+                                  <span className="text-2xl font-bold text-primary">
+                                    <span className="line-through text-muted-foreground mr-2">{item.price}</span>
+                                    <span className="text-emerald-700">{item.salePrice}</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-2xl font-bold text-primary">{item.price}</span>
+                                )}
+                              </div>
+                              <p className="text-[12px] text-muted-foreground mt-1">Boards ship insured (~$50). Small items ~$15. Free local pickup.</p>
                             </div>
-							*/}
-                            <div className="flex justify-between items-center pt-1">
-                              <span className="text-sm text-muted-foreground">Price:</span>
-                              {isOnSale && item.salePrice ? (
-                                <span className="text-2xl font-bold text-primary">
-                                  <span className="line-through text-muted-foreground mr-2">{item.price}</span>
-                                  <span className="text-emerald-700">{item.salePrice}</span>
-                                </span>
-                              ) : (
-                                <span className="text-2xl font-bold text-primary">{item.price}</span>
-                              )}
-                            </div>
-                          </div>
-                        </CardContent>
-                        <CardFooter className="p-3 pt-0">
-						  <Button asChild className={"w-full " + (isOnSale ? SALE_STYLES[SALE_THEME].button : "")} size="sm">
-							<a href={mailto}>
-							  {isOnSale ? "On Sale — Contact to Purchase" : "Contact to Purchase"}
-							</a>
-						  </Button>
-						</CardFooter>
-                      </Card>
-                      )
+                          </CardContent>
+                          <CardFooter className="p-3 pt-0 gap-2 flex-col sm:flex-row">
+                            {showBuyNow && (
+                              <Button
+                                onClick={() => buy(item)}
+                                className={"w-full sm:w-auto " + (isOnSale ? SALE_STYLES[SALE_THEME].button : "")}
+                                size="sm"
+                              >
+                                {isOnSale ? "Buy Now (On Sale)" : "Buy Now"}
+                              </Button>
+                            )}
+                            <Button asChild variant={showBuyNow ? "outline" : "default"} className={"w-full sm:w-auto"} size="sm">
+                              <a href={mailto}>{showBuyNow ? "Or Contact to Purchase" : (isOnSale ? "On Sale — Contact to Purchase" : "Contact to Purchase")}</a>
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      );
                     })}
                 </div>
 
-                {inventoryItems.filter((item) => category.value === "all" || item.category === category.value)
-                  .length === 0 && (
+                {inventoryItems.filter((item) => category.value === "all" || item.category === category.value).length === 0 && (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground">No items currently in stock for this category.</p>
                   </div>
@@ -358,5 +427,5 @@ export default function InventoryPage() {
 
       <Footer />
     </div>
-  )
+  );
 }
