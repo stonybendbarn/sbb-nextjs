@@ -245,6 +245,16 @@ export default function InventoryPage() {
                     .filter((item) => category.value === "all" || item.category === category.value)
                     .map((item) => {
                       const isOnSale = item.stock?.toLowerCase().includes("on sale");
+					  const subject = `Interested in ${item.name}`;
+					  const priceText = (isOnSale && item.salePrice) ? item.salePrice : item.price;
+					  // Use real newlines; join with \r\n for widest email-client compatibility
+					  const body = [  
+						"Hi Stony Bend Barn,",  
+						"",  `I'm interested in "${item.name}" (${item.size}) listed at ${priceText}.`,
+						"",
+						"Please let me know availability and next steps."
+						].join("\r\n");
+					  const mailto = `mailto:info@stonybendbarn.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                       return (
                       <Card key={item.id} className="overflow-hidden flex flex-col">
                         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
@@ -300,10 +310,12 @@ export default function InventoryPage() {
                           </div>
                         </CardContent>
                         <CardFooter className="p-3 pt-0">
-                          <Button className={"w-full " + (isOnSale ? SALE_STYLES[SALE_THEME].button : "")} size="sm">
-                            {isOnSale ? "On Sale — Contact to Purchase" : "Contact to Purchase"}
-                          </Button>
-                        </CardFooter>
+						  <Button asChild className={"w-full " + (isOnSale ? SALE_STYLES[SALE_THEME].button : "")} size="sm">
+							<a href={mailto}>
+							  {isOnSale ? "On Sale — Contact to Purchase" : "Contact to Purchase"}
+							</a>
+						  </Button>
+						</CardFooter>
                       </Card>
                       )
                     })}
