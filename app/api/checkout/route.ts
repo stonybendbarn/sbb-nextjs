@@ -87,7 +87,8 @@ export async function POST(req: Request) {
       automatic_tax: { enabled: true },
 
       // Where to send the buyer
-      success_url: `${SITE_URL}/success?pid=${encodeURIComponent(String(productId))}`,
+	  // in app/api/checkout/route.ts
+	  success_url: `${SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}&pid=${encodeURIComponent(String(productId))}`,
       cancel_url: `${SITE_URL}/inventory`,
     });
 
