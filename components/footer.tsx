@@ -60,10 +60,31 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Products</h4>
             <ul className="space-y-2">
-              <li className="text-sm text-primary-foreground/80">Cutting Boards</li>
-              <li className="text-sm text-primary-foreground/80">Game Boards</li>
-              <li className="text-sm text-primary-foreground/80">Furniture</li>
-              <li className="text-sm text-primary-foreground/80">Bar Ware</li>
+              <li>
+                <Link href="/products/cutting-boards" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Cutting Boards
+                </Link>
+              </li>
+              <li>
+                <Link href="/products/game-boards" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Game Boards
+                </Link>
+              </li>
+              <li>
+                <Link href="/products/furniture" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Furniture
+                </Link>
+              </li>
+              <li>
+                <Link href="/products/outdoor-items" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Outdoor Items
+                </Link>
+              </li>              
+			  <li>
+                <Link href="/products/bar-ware" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Bar Ware
+                </Link>
+              </li>
             </ul>
           </div>
 

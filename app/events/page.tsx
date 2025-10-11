@@ -1,3 +1,5 @@
+// app/events/page.tsx
+
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -8,91 +10,25 @@ import { Calendar, MapPin, Clock, Users } from "lucide-react"
 const upcomingEvents = [
   {
     id: 1,
-    title: "Spring Craft Fair",
-    date: "April 15, 2025",
-    time: "10:00 AM - 5:00 PM",
-    location: "Downtown Community Center",
-    address: "123 Main Street, Your City",
+    title: "Christmas Event",
+    date: "TBD",
+    time: "TBD",
+    location: "TBD",
+    address: "TBD",
     description:
-      "Join us at the annual Spring Craft Fair where we'll be showcasing our latest creations. Browse our full collection of cutting boards, furniture, and custom pieces.",
+      "Join us as we will be one of many vendors as Brindledog Scents puts on their annual Christmas event.",
     type: "Market",
     image: "outdoor craft fair with wooden products",
-  },
-  {
-    id: 2,
-    title: "Woodworking Workshop: Cutting Board Basics",
-    date: "April 22, 2025",
-    time: "1:00 PM - 4:00 PM",
-    location: "Stony Bend Barn Workshop",
-    address: "456 Rural Route, Your Town",
-    description:
-      "Learn the fundamentals of creating your own end grain cutting board. This hands-on workshop covers wood selection, gluing techniques, and finishing. All materials included.",
-    type: "Workshop",
-    spots: "8 spots available",
-    price: "$125 per person",
-    image: "woodworking workshop with people learning",
-  },
-  {
-    id: 3,
-    title: "Farmers Market - Weekly",
-    date: "Every Saturday",
-    time: "8:00 AM - 1:00 PM",
-    location: "Town Square Farmers Market",
-    address: "Town Square, Your City",
-    description:
-      "Find us every Saturday at the local farmers market with a selection of our handcrafted items. Perfect for browsing and taking pieces home the same day.",
-    type: "Market",
-    image: "farmers market booth with wooden products",
-  },
-  {
-    id: 4,
-    title: "Open House & Studio Tour",
-    date: "May 6, 2025",
-    time: "11:00 AM - 4:00 PM",
-    location: "Stony Bend Barn Workshop",
-    address: "456 Rural Route, Your Town",
-    description:
-      "Tour our workshop and see where the magic happens! Watch live demonstrations, meet the craftsmen, and enjoy refreshments. Special discounts on inventory items.",
-    type: "Open House",
-    image: "woodworking workshop interior with tools",
-  },
-  {
-    id: 5,
-    title: "Advanced Woodworking: Joinery Techniques",
-    date: "May 20, 2025",
-    time: "9:00 AM - 3:00 PM",
-    location: "Stony Bend Barn Workshop",
-    address: "456 Rural Route, Your Town",
-    description:
-      "Take your woodworking skills to the next level with this advanced workshop focusing on traditional joinery methods. Lunch included.",
-    type: "Workshop",
-    spots: "6 spots available",
-    price: "$185 per person",
-    image: "close up of woodworking joinery techniques",
   },
 ]
 
 const pastEvents = [
   {
     id: 1,
-    title: "Holiday Market 2024",
-    date: "December 14, 2024",
-    description: "Our most successful market yet with over 200 visitors!",
+    title: "Hasentree Fall Market",
+    date: "September 27, 2025",
+    description: "Beautiful weather helped make this event a continued success!",
     image: "holiday market with wooden gifts",
-  },
-  {
-    id: 2,
-    title: "Fall Harvest Festival",
-    date: "October 12, 2024",
-    description: "Beautiful autumn day showcasing seasonal pieces and custom orders.",
-    image: "fall festival booth with wooden items",
-  },
-  {
-    id: 3,
-    title: "Summer Woodworking Series",
-    date: "June - August 2024",
-    description: "Three-part workshop series teaching fundamental woodworking skills.",
-    image: "summer woodworking class with students",
   },
 ]
 
@@ -187,7 +123,7 @@ export default function EventsPage() {
         </div>
       </section>
 
-      {/* Newsletter Signup */}
+      {/* Newsletter Signup 
       <section className="py-16 md:py-24 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl mx-auto text-center">
@@ -210,6 +146,7 @@ export default function EventsPage() {
           </div>
         </div>
       </section>
+	  */}
 
       {/* Past Events */}
       <section className="py-16 md:py-24 bg-accent">

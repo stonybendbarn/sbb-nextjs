@@ -53,7 +53,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Hero Image */}
+        {/* Hero Image 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12 md:mt-16">
           <div className="relative aspect-[16/9] md:aspect-[21/9] rounded-lg overflow-hidden">
             <img
@@ -62,7 +62,7 @@ export default function HomePage() {
               className="w-full h-full object-cover"
             />
           </div>
-        </div>
+        </div>*/}
       </section>
 
       {/* About Section */}
