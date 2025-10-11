@@ -1,77 +1,64 @@
-// app/api/checkout/route.ts
-export const runtime = "nodejs";        // ensure Node runtime (Stripe SDK needs Node)
-export const dynamic = "force-dynamic"; // don't cache this route
+// ================================
+// 1) app/api/checkout/route.ts
+//    Multi item Checkout (cart or single‑item)
+// ================================
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-// Secret key MUST be set in Vercel env (Project → Settings → Environment Variables)
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY!;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: "2024-06-20" });
 
-if (!STRIPE_SECRET_KEY) {
-  throw new Error("Missing STRIPE_SECRET_KEY environment variable");
-}
-
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: "2024-06-20",
-});
-
-type Body = {
+type CartItem = {
+  id: number | string;
   name: string;
-  priceInCents: number;   // e.g., 22500
-  productId: number | string;
-  image?: string;         // full URL recommended for Stripe images
-  shipTier?: "small" | "board" | "pickup";
+  priceInCents: number;
+  image?: string;
+  shippingCents?: number; // per‑item shipping (optional)
 };
 
 export async function POST(req: Request) {
   try {
-    const { name, priceInCents, productId, image, shipTier }: Body = await req.json();
+    const body = (await req.json()) as { items?: CartItem[] } | CartItem;
 
-    if (!name || !priceInCents || !productId) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    // Accept either {items:[...]} or a single item for convenience
+    const items: CartItem[] = Array.isArray((body as any).items)
+      ? (body as any).items
+      : [body as CartItem];
+
+    if (!items || items.length === 0) {
+      return NextResponse.json({ error: "No items provided" }, { status: 400 });
     }
 
-    // Map tier → shipping amount (cents)
-    // - small items (coasters/cheese boards): $15
-    // - boards/furniture: $50
-    // - pickup: $0
-    const shippingAmount =
-      shipTier === "small" ? 1500 :
-      shipTier === "pickup" ? 0 :
-      5000; // default: board
-
-    const lineItem = {
+    // Build line items
+    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((it) => ({
       price_data: {
         currency: "usd",
-        unit_amount: priceInCents,
+        unit_amount: it.priceInCents,
         product_data: {
-          name,
-          // Stripe recommends absolute URLs for images
-          images: image ? [image] : [],
+          name: it.name,
+          images: it.image ? [it.image] : [],
         },
       },
-      quantity: 1,
-    };
+      quantity: 1, // one‑of‑a‑kind inventory
+    }));
+
+    // Compute order‑level shipping (simple sum of per‑item shipping)
+    const totalShipCents = items.reduce((sum, it) => sum + (it.shippingCents ?? 0), 0);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: [lineItem],
-      // Collect address (needed for shipping + tax)
+      line_items,
       shipping_address_collection: { allowed_countries: ["US"] },
-
-      // Offer two options: insured shipping (tiered) and free local pickup
       shipping_options: [
         {
           shipping_rate_data: {
-            display_name: "Insured Ground (3–5 business days)",
+            display_name: "Insured Shipping",
             type: "fixed_amount",
-            fixed_amount: { amount: shippingAmount, currency: "usd" },
-            delivery_estimate: {
-              minimum: { unit: "business_day", value: 3 },
-              maximum: { unit: "business_day", value: 5 },
-            },
+            fixed_amount: { amount: totalShipCents, currency: "usd" },
           },
         },
         {
@@ -82,22 +69,15 @@ export async function POST(req: Request) {
           },
         },
       ],
-
-      // Let Stripe Tax handle shipping tax rules where required
       automatic_tax: { enabled: true },
-
-      // Where to send the buyer
-	  // in app/api/checkout/route.ts
-	  success_url: `${SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}&pid=${encodeURIComponent(String(productId))}`,
+      success_url: `${SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${SITE_URL}/inventory`,
     });
 
     return NextResponse.json({ url: session.url }, { status: 200 });
   } catch (err: any) {
     console.error("Stripe checkout error:", err);
-    return NextResponse.json(
-      { error: err?.message ?? "Checkout failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err?.message ?? "Checkout failed" }, { status: 500 });
   }
 }
+

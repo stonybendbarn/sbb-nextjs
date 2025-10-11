@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCart } from "@/components/cart-context";
 import { Package } from "lucide-react";
 import Image from "next/image";
 
@@ -30,15 +31,7 @@ function priceToCents(price: string | undefined): number | null {
   return Math.round(num * 100);
 }
 
-// Helper: choose a shipping tier by category
-// - boards (cutting-boards): $50 insured
-// - coasters / cheese-boards: $15 small parcel
-// - furniture defaults to $50 for now (adjust as you like)
-function getShipTier(item: InventoryItem): "board" | "small" | "pickup" {
-  if (item.category === "coasters" || item.category === "cheese-boards") return "small";
-  if (item.category === "cutting-boards") return "board";
-  return "board";
-}
+// (removed tier helper) — using per‑item shippingCents now
 
 // Client-side: create Checkout Session then redirect
 async function buy(item: InventoryItem) {
@@ -51,7 +44,7 @@ async function buy(item: InventoryItem) {
     priceInCents: cents,
     productId: item.id,
     image: item.image?.startsWith("/images/") ? `${location.origin}${item.image}` : undefined,
-    shipTier: getShipTier(item),
+    shipAmount: typeof item.shippingCents === "number" ? item.shippingCents : (item.category === "cutting-boards" ? 5000 : 1500),
   };
 
   const res = await fetch("/api/checkout", {
@@ -83,6 +76,7 @@ type InventoryItem = {
   stock: string;
   image: string;
   description: string;
+  shippingCents?: number; // per item shipping control (e.g., 5000 => $50)
 };
 
 const inventoryItems: InventoryItem[] = [
@@ -96,6 +90,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/cutting-boards/eg-chess-board.jpeg",
     description: "Classic chess board wood wrapped in with a paduak board and brass feet. Recessed handles make lifting this large board simpler.",
+    shippingCents: 4000,
   },
   {
     id: 2,
@@ -107,6 +102,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/cutting-boards/IMG_0809.jpeg",
     description: "End grain board perfect for cutting fresh vegetables.",
+    shippingCents: 2000,
   },
   {
     id: 3,
@@ -119,6 +115,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "On Sale",
     image: "/images/cutting-boards/eg-chaos2.jpeg",
     description: "Cherry, maple, and padauk end grain board with brass feet.",
+    shippingCents: 4000,
   },
   {
     id: 4,
@@ -130,6 +127,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/cutting-boards/maple-walnut.jpeg",
     description: "End grain board perfect for cutting fresh vegetables.",
+    shippingCents: 2000,
   },
   {
     id: 5,
@@ -141,6 +139,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/coasters/canary1.jpeg",
     description: "Set of 4 canary wood coasters.",
+    shippingCents: 500,
   },
   {
     id: 6,
@@ -152,6 +151,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/coasters/canary2.jpeg",
     description: "Set of 4 canary wood coasters.",
+    shippingCents: 500,
   },
   {
     id: 7,
@@ -163,6 +163,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/coasters/canary3.jpeg",
     description: "Set of 4 canary wood coasters.",
+    shippingCents: 500,
   },
   {
     id: 8,
@@ -174,6 +175,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/cheese-boards/cb-eg-phmp.jpeg",
     description: "Purpleheart and maple end grain cheese board.",
+    shippingCents: 1000,
   },
   {
     id: 9,
@@ -185,6 +187,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/cheese-boards/sb-eg-phmp.jpeg",
     description: "Purpleheart and maple end grain serving board.",
+    shippingCents: 1000,
   },
   {
     id: 10,
@@ -196,6 +199,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/furniture/plant-stand-short.jpeg",
     description: "Mahogany and purpleheart plant stand.",
+    shippingCents: 5000,
   },
   {
     id: 11,
@@ -207,6 +211,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/furniture/plant-stand-tall.jpeg",
     description: "Mahogany and maple plant stand.",
+    shippingCents: 5000,
   },
   {
     id: 12,
@@ -218,6 +223,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/bar-ware/bo-mahog.jpeg",
     description: "Mahogany bottle opener with magnet.",
+    shippingCents: 500,
   },
   {
     id: 1201,
@@ -229,6 +235,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/bar-ware/bo-mult1.jpeg",
     description: "Purpleheart, maple, and mahogany bottle opener with magnet.",
+    shippingCents: 500,
   },
   {
     id: 1202,
@@ -240,6 +247,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/bar-ware/bo-mult2.jpeg",
     description: "Purpleheart, maple, and mahogany bottle opener with magnet.",
+    shippingCents: 500,
   },
   {
     id: 1203,
@@ -251,6 +259,7 @@ const inventoryItems: InventoryItem[] = [
     stock: "In Stock",
     image: "/images/bar-ware/bo-mult3.jpeg",
     description: "Purpleheart, maple, and mahogany bottle opener with magnet.",
+    shippingCents: 500,
   },
 ];
 
@@ -266,6 +275,7 @@ const categories = [
 ];
 
 export default function InventoryPage() {
+  const cart = useCart();	
   return (
     <div className="min-h-screen">
       <Navigation />
@@ -282,8 +292,7 @@ export default function InventoryPage() {
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-pretty">
               Browse our available items ready to ship. All pieces are handcrafted and in stock now.
-            </p>
-            <p className="mt-3 text-sm text-muted-foreground">$50 insured US shipping on boards · $15 on small items · Free local pickup (Wake Forest, NC)</p>
+            </p>            
           </div>
         </div>
       </section>
@@ -369,23 +378,47 @@ export default function InventoryPage() {
                                   <span className="text-2xl font-bold text-primary">{item.price}</span>
                                 )}
                               </div>
-                              <p className="text-[12px] text-muted-foreground mt-1">Boards ship insured (~$50). Small items ~$15. Free local pickup.</p>
+							  {/*
+                              <p className="text-[12px] text-muted-foreground mt-1">Shipping: {((item.shippingCents ?? (item.category === "cutting-boards" ? 5000 : 1500)) / 100).toLocaleString(undefined, { style: "currency", currency: "USD" })} (insured where applicable) · Free local pickup available</p>
+							  */}
                             </div>
                           </CardContent>
                           <CardFooter className="p-3 pt-0 gap-2 flex-col sm:flex-row">
-                            {showBuyNow && (
-                              <Button
-                                onClick={() => buy(item)}
-                                className={"w-full sm:w-auto " + (isOnSale ? SALE_STYLES[SALE_THEME].button : "")}
-                                size="sm"
-                              >
-                                {isOnSale ? "Buy Now (On Sale)" : "Buy Now"}
-                              </Button>
-                            )}
-                            <Button asChild variant={showBuyNow ? "outline" : "default"} className={"w-full sm:w-auto"} size="sm">
-                              <a href={mailto}>{showBuyNow ? "Or Contact to Purchase" : (isOnSale ? "On Sale — Contact to Purchase" : "Contact to Purchase")}</a>
-                            </Button>
-                          </CardFooter>
+							  <Button
+								type="button"
+								onClick={() => cart.addItem({
+								  id: item.id,
+								  name: item.name,
+								  priceInCents: (isOnSale && item.salePrice ? priceToCents(item.salePrice)! : priceToCents(item.price)!),
+								  image: item.image?.startsWith("/images/") ? `${location.origin}${item.image}` : undefined,
+								  shippingCents: typeof item.shippingCents === "number" ? item.shippingCents : (item.category === "cutting-boards" ? 5000 : 1500),
+								})}
+								className="w-full sm:w-auto"
+								size="sm"
+							  >
+								Add to Cart
+							  </Button>
+
+							  <Button
+								onClick={async () => {
+								  const payload = [{
+									id: item.id,
+									name: item.name,
+									priceInCents: (isOnSale && item.salePrice ? priceToCents(item.salePrice)! : priceToCents(item.price)!),
+									image: item.image?.startsWith("/images/") ? `${location.origin}${item.image}` : undefined,
+									shippingCents: typeof item.shippingCents === "number" ? item.shippingCents : (item.category === "cutting-boards" ? 5000 : 1500),
+								  }];
+								  const res = await fetch("/api/checkout", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ items: payload }) });
+								  const { url } = await res.json();
+								  window.location.href = url;
+								}}
+								variant={isOnSale ? undefined : "outline"}
+								className={isOnSale ? "" : "w-full sm:w-auto"}
+								size="sm"
+							  >
+								{isOnSale ? "Buy Now (On Sale)" : "Buy Now"}
+							  </Button>
+							</CardFooter>
                         </Card>
                       );
                     })}

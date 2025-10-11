@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
+import { CartProvider } from "@/components/cart-context";
 
 export const metadata: Metadata = {
   title: "Stony Bend Barn - Handcrafted Woodworking",
@@ -12,6 +13,18 @@ export const metadata: Metadata = {
   generator: "v0.app",
 }
 
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <CartProvider>
+          {children}
+        </CartProvider>
+      </body>
+    </html>
+  );
+}
+{/*
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,3 +39,4 @@ export default function RootLayout({
     </html>
   )
 }
+*/}

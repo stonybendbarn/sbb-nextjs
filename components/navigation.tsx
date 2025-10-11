@@ -5,6 +5,7 @@ import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import CartLink from "@/components/cart-link";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
@@ -43,6 +44,7 @@ export function Navigation() {
                 {link.label}
               </Link>
             ))}
+			<CartLink />
           </div>
 
           {/* Mobile Menu Button */}
@@ -71,6 +73,7 @@ export function Navigation() {
                   {link.label}
                 </Link>
               ))}
+			  <CartLink	/>
             </div>
           </div>
         )}
