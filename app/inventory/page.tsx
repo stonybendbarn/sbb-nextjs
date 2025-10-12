@@ -320,7 +320,7 @@ const categories = [
   { value: "coasters", label: "Coasters" },
   { value: "outdoor", label: "Outdoor Items" },
   { value: "furniture", label: "Furniture" },
-  { value: "barware", label: "Bar Ware" },
+  { value: "bar-ware", label: "Bar Ware" },
 ];
 
 function InventoryImageCarousel({
@@ -478,9 +478,7 @@ export default function InventoryPage() {
                       // NEW: normalized images
                       const images = getImages(item);
                       const firstImage = images[0];
-                      const firstImageAbs = firstImage?.startsWith("/images/")
-                        ? `${location.origin}${firstImage}`
-                        : firstImage;
+                      const firstImageAbs = toAbs(firstImage);
 
                       return (
                         <Card key={item.id} className="overflow-hidden flex flex-col">
