@@ -82,6 +82,13 @@ function getImages(item: InventoryItem): string[] {
   return item.image ? [item.image] : [];
 }
 
+function toAbs(url?: string) {
+  if (!url) return undefined;
+  if (url.startsWith("http")) return url;
+  if (typeof window !== "undefined") return `${window.location.origin}${url}`;
+  return url; // fallback during SSR/prerender
+}
+
 // Client-side: create Checkout Session then redirect
 async function buy(item: InventoryItem) {
   const isOnSale = (item.stock || "").toLowerCase().includes("on sale");
@@ -90,7 +97,6 @@ async function buy(item: InventoryItem) {
 
   const images = getImages(item);
   const firstImage = images[0];
-  const firstImageAbs = firstImage?.startsWith("/images/") ? `${location.origin}${firstImage}` : firstImage;
 
   const body = {
     name: item.name,
@@ -519,7 +525,7 @@ export default function InventoryPage() {
                                 id: item.id,
                                 name: item.name,
                                 priceInCents: (isOnSale && item.salePrice ? priceToCents(item.salePrice)! : priceToCents(item.price)!),
-                                image: firstImageAbs,
+                                image: toAbs(firstImage),
                                 shippingCents: typeof item.shippingCents === "number" ? item.shippingCents : (item.category === "cutting-boards" ? 5000 : 1500),
                               })}
                               className="w-full sm:w-auto"
@@ -534,7 +540,7 @@ export default function InventoryPage() {
                                   id: item.id,
                                   name: item.name,
                                   priceInCents: (isOnSale && item.salePrice ? priceToCents(item.salePrice)! : priceToCents(item.price)!),
-                                  image: firstImageAbs,
+                                  image: toAbs(firstImage),
                                   shippingCents: typeof item.shippingCents === "number" ? item.shippingCents : (item.category === "cutting-boards" ? 5000 : 1500),
                                 }];
                                 const res = await fetch("/api/checkout", {
