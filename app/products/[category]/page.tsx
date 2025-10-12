@@ -222,7 +222,7 @@ const categoryData: Record<
       {
         name: "Fishing Net",
         description: "Durable outdoor net with environmentally friendly netting and magnetic clip.",
-        size: '10.5" x 30.5" x .75",
+        size: '10.5" x 30.5" x .75"',
         price: "$190",
         image: "/images/outdoor-items/IMG_6584.jpeg",
       },
