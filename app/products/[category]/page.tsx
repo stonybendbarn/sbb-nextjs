@@ -231,7 +231,7 @@ const categoryData: Record<
         description: "Magnetic cigar caddy to keep your cigar dry and at your fingertips.",
         size: '2" x 4"',
         price: "$20",
-        image: "/images/outdoor-items/IMG_3603.JPEG",
+        image: "/images/outdoor-items/IMG_3603.jpeg",
       },	  
     ],
   },
