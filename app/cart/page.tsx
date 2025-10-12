@@ -10,8 +10,19 @@ function cents(n: number) {
   return (n / 100).toLocaleString(undefined, { style: "currency", currency: "USD" });
 }
 
+// --- Shipping discount read/compute (client-display only) ---
+const raw = process.env.NEXT_PUBLIC_SHIPPING_DISCOUNT ?? "0";
+const pctNum = Number(raw);
+const clampedPct = Number.isFinite(pctNum) ? Math.min(100, Math.max(0, pctNum)) : 0;
+const SHIPPING_DISCOUNT_F = clampedPct / 100;
+
 export default function CartPage() {
   const { items, removeItem, clear, subtotalCents, shippingCents } = useCart();
+
+  const discountedShippingCents = Math.max(
+    0,
+    Math.round(shippingCents * (1 - SHIPPING_DISCOUNT_F))
+  );
 
   const checkout = async () => {
     const res = await fetch("/api/checkout", {
@@ -47,7 +58,9 @@ export default function CartPage() {
                   <div className="font-medium truncate">{it.name}</div>
                   <div className="text-sm text-muted-foreground">{cents(it.priceInCents)}</div>
                   {typeof it.shippingCents === "number" &&
-                    <div className="text-xs text-muted-foreground">Shipping: {cents(it.shippingCents)}</div>}
+                    <div className="text-xs text-muted-foreground">
+                      Shipping: {cents(it.shippingCents)}
+                    </div>}
                 </div>
 
                 <Button variant="outline" onClick={() => removeItem(it.id)}>Remove</Button>
@@ -56,11 +69,41 @@ export default function CartPage() {
           </div>
 
           <div className="border-t pt-4 space-y-2 max-w-md">
-            <div className="flex justify-between text-sm"><span>Subtotal</span><span>{cents(subtotalCents)}</span></div>
-            <div className="flex justify-between text-sm"><span>Shipping (at checkout)</span><span>{cents(shippingCents)}</span></div>
-            <div className="flex justify-between font-semibold text-base">
-              <span>Estimated total</span><span>{cents(subtotalCents + shippingCents)}</span>
+            <div className="flex justify-between text-sm">
+              <span>Subtotal</span>
+              <span>{cents(subtotalCents)}</span>
             </div>
+
+            {/* Original shipping (strike-through if discount applies) */}
+            <div className="flex justify-between text-sm">
+              <span>Shipping</span>
+              <span>
+                {SHIPPING_DISCOUNT_F > 0 ? (
+                  <>
+                    <span className="line-through mr-2">{cents(shippingCents)}</span>
+                    <span>{cents(discountedShippingCents)}</span>
+                  </>
+                ) : (
+                  cents(shippingCents)
+                )}
+              </span>
+            </div>
+
+            {/* Discount note */}
+            {SHIPPING_DISCOUNT_F > 0 && (
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>
+                  Shipping discount{clampedPct === 100 ? " (Free Shipping)" : ""} — {clampedPct}%
+                </span>
+                <span>-{cents(shippingCents - discountedShippingCents)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between font-semibold text-base">
+              <span>Estimated total</span>
+              <span>{cents(subtotalCents + discountedShippingCents)}</span>
+            </div>
+
             <div className="flex gap-2 pt-2">
               <Button variant="outline" onClick={clear}>Clear</Button>
               <Button onClick={checkout} className="flex-1">Checkout</Button>

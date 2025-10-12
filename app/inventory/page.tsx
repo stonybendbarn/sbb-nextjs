@@ -8,19 +8,45 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/components/cart-context";
+import ProductTile from "@/components/ProductTile";
 import { Package } from "lucide-react";
 import Image from "next/image";
 
 // --- Sale styling config ---
 // Change SALE_THEME between: "amber", "orange", "green", "blue", "rose"
-const SALE_STYLES: Record<string, { button: string; badge: string }> = {
-  amber:  { button: "bg-amber-500 text-black hover:bg-amber-600",  badge: "bg-amber-500 text-black" },
-  orange: { button: "bg-orange-500 text-white hover:bg-orange-600", badge: "bg-orange-500 text-white" },
-  green:  { button: "bg-emerald-600 text-white hover:bg-emerald-700", badge: "bg-emerald-600 text-white" },
-  blue:   { button: "bg-sky-600 text-white hover:bg-sky-700",        badge: "bg-sky-600 text-white" },
-  rose:   { button: "bg-rose-600 text-white hover:bg-rose-700",      badge: "bg-rose-600 text-white" },
+// add a `price` class to each theme
+const SALE_STYLES: Record<
+  string,
+  { button: string; badge: string; price: string }
+> = {
+  amber:  {
+    button: "bg-amber-500 text-black hover:bg-amber-600",
+    badge:  "bg-amber-500 text-black",
+    price:  "text-amber-600",
+  },
+  orange: {
+    button: "bg-orange-500 text-white hover:bg-orange-600",
+    badge:  "bg-orange-500 text-white",
+    price:  "text-orange-600",
+  },
+  green:  {
+    button: "bg-emerald-600 text-white hover:bg-emerald-700",
+    badge:  "bg-emerald-600 text-white",
+    price:  "text-emerald-700",
+  },
+  blue:   {
+    button: "bg-sky-600 text-white hover:bg-sky-700",
+    badge:  "bg-sky-600 text-white",
+    price:  "text-sky-700",
+  },
+  rose:   {
+    button: "bg-rose-600 text-white hover:bg-rose-700",
+    badge:  "bg-rose-600 text-white",
+    price:  "text-rose-700",
+  },
 };
-const SALE_THEME = "green";
+
+const SALE_THEME = "amber";
 // --- end sale styling config ---
 
 // Helper: parse a price string like "$295" -> 29500 cents
@@ -110,7 +136,7 @@ const inventoryItems: InventoryItem[] = [
     categoryName: "Cutting Boards",
     name: "Chaos End Grain Board",
     size: '12.5" x 16" x 1.75"',
-    price: "$325",
+    price: "$285",
     salePrice: "$225",
     stock: "On Sale",
     image: "/images/cutting-boards/eg-chaos2.jpeg",
@@ -368,16 +394,17 @@ export default function InventoryPage() {
                                 <span className="text-sm font-medium">{item.size}</span>
                               </div>
                               <div className="flex justify-between items-center pt-1">
-                                <span className="text-sm text-muted-foreground">Price:</span>
-                                {isOnSale && item.salePrice ? (
-                                  <span className="text-2xl font-bold text-primary">
-                                    <span className="line-through text-muted-foreground mr-2">{item.price}</span>
-                                    <span className="text-emerald-700">{item.salePrice}</span>
-                                  </span>
-                                ) : (
-                                  <span className="text-2xl font-bold text-primary">{item.price}</span>
-                                )}
-                              </div>
+								  <span className="text-sm text-muted-foreground">Price:</span>
+
+								  {isOnSale && item.salePrice ? (
+									<span className="text-2xl font-bold">
+									  <span className="line-through text-muted-foreground mr-2">{item.price}</span>
+									  <span className={SALE_STYLES[SALE_THEME].price}>{item.salePrice}</span>
+									</span>
+								  ) : (
+									<span className="text-2xl font-bold text-primary">{item.price}</span>
+								  )}
+								</div>
 							  {/*
                               <p className="text-[12px] text-muted-foreground mt-1">Shipping: {((item.shippingCents ?? (item.category === "cutting-boards" ? 5000 : 1500)) / 100).toLocaleString(undefined, { style: "currency", currency: "USD" })} (insured where applicable) · Free local pickup available</p>
 							  */}
@@ -413,7 +440,7 @@ export default function InventoryPage() {
 								  window.location.href = url;
 								}}
 								variant={isOnSale ? undefined : "outline"}
-								className={isOnSale ? "" : "w-full sm:w-auto"}
+								className={isOnSale ? `${SALE_STYLES[SALE_THEME].button}` : "w-full sm:w-auto"}
 								size="sm"
 							  >
 								{isOnSale ? "Buy Now (On Sale)" : "Buy Now"}
