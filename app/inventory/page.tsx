@@ -11,6 +11,9 @@ import { useCart } from "@/components/cart-context";
 import ProductTile from "@/components/ProductTile";
 import { Package } from "lucide-react";
 import Image from "next/image";
+import { ChevronLeft, ChevronRight, Images as ImagesIcon } from "lucide-react";
+import { useState, useRef } from "react";
+
 
 // --- Sale styling config ---
 // Change SALE_THEME between: "amber", "orange", "green", "blue", "rose"
@@ -57,7 +60,27 @@ function priceToCents(price: string | undefined): number | null {
   return Math.round(num * 100);
 }
 
-// (removed tier helper) — using per‑item shippingCents now
+// Types for items (now supports multiple images)
+type InventoryItem = {
+  id: number;
+  category: string;
+  categoryName: string;
+  name: string;
+  size: string;
+  price: string;
+  salePrice?: string;
+  stock: string;
+  image?: string;        // existing single-image field (still works)
+  images?: string[];     // NEW: optional multi-image field
+  description: string;
+  shippingCents?: number; // per item shipping control (e.g., 5000 => $50)
+};
+
+// Normalize images so the rest of the code can always read an array
+function getImages(item: InventoryItem): string[] {
+  if (item.images && item.images.length) return item.images;
+  return item.image ? [item.image] : [];
+}
 
 // Client-side: create Checkout Session then redirect
 async function buy(item: InventoryItem) {
@@ -65,12 +88,18 @@ async function buy(item: InventoryItem) {
   const cents = priceToCents(isOnSale && item.salePrice ? item.salePrice : item.price);
   if (!cents) return alert("Sorry, this item doesn't have a valid price.");
 
+  const images = getImages(item);
+  const firstImage = images[0];
+  const firstImageAbs = firstImage?.startsWith("/images/") ? `${location.origin}${firstImage}` : firstImage;
+
   const body = {
     name: item.name,
     priceInCents: cents,
     productId: item.id,
-    image: item.image?.startsWith("/images/") ? `${location.origin}${item.image}` : undefined,
-    shipAmount: typeof item.shippingCents === "number" ? item.shippingCents : (item.category === "cutting-boards" ? 5000 : 1500),
+    image: firstImageAbs, // use the first image if available
+    shipAmount: typeof item.shippingCents === "number"
+      ? item.shippingCents
+      : (item.category === "cutting-boards" ? 5000 : 1500),
   };
 
   const res = await fetch("/api/checkout", {
@@ -90,21 +119,6 @@ async function buy(item: InventoryItem) {
   window.location.href = url;
 }
 
-// Types for items
-type InventoryItem = {
-  id: number;
-  category: string;
-  categoryName: string;
-  name: string;
-  size: string;
-  price: string;
-  salePrice?: string;
-  stock: string;
-  image: string;
-  description: string;
-  shippingCents?: number; // per item shipping control (e.g., 5000 => $50)
-};
-
 const inventoryItems: InventoryItem[] = [
   {
     id: 1,
@@ -114,7 +128,10 @@ const inventoryItems: InventoryItem[] = [
     size: '18.75" x 19" x 2"',
     price: "$295",
     stock: "In Stock",
-    image: "/images/cutting-boards/eg-chess-board.jpeg",
+    images: [
+		"/images/cutting-boards/eg-chess-board.jpeg",
+		"/images/cutting-boards/eg-chess-board2.jpeg"
+		],
     description: "Classic chess board wood wrapped in with a paduak board and brass feet. Recessed handles make lifting this large board simpler.",
     shippingCents: 4000,
   },
@@ -300,8 +317,101 @@ const categories = [
   { value: "barware", label: "Bar Ware" },
 ];
 
+function InventoryImageCarousel({
+  images,
+  alt,
+  className = "",
+}: {
+  images: string[];
+  alt: string;
+  className?: string;
+}) {
+  const [idx, setIdx] = useState(0);
+  const hasMultiple = images.length > 1;
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const go = (dir: 1 | -1) => {
+    if (!hasMultiple) return;
+    setIdx((prev) => (prev + dir + images.length) % images.length);
+  };
+
+  const handleImageClick = () => go(1);
+
+  return (
+    <div
+      ref={containerRef}
+      className={`relative aspect-[4/3] overflow-hidden bg-muted ${className}`}
+    >
+      {images[idx] ? (
+        <Image
+          key={images[idx]}
+          src={images[idx]}
+          alt={alt}
+          fill
+          className="object-contain transition-opacity duration-200 ease-in"
+          sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+          quality={92}
+          onClick={handleImageClick}
+        />
+      ) : (
+        <div className="absolute inset-0 grid place-items-center text-muted-foreground">
+          <span className="px-3 text-sm">Image coming soon</span>
+        </div>
+      )}
+
+      {/* corner index indicator */}
+      {hasMultiple && (
+        <div
+          className="pointer-events-none absolute top-2 left-2 inline-flex items-center gap-1 rounded-md bg-black/45 text-white px-1.5 py-0.5 text-[10px]"
+          aria-hidden="true"
+        >
+          <ImagesIcon className="h-3.5 w-3.5" />
+          {idx + 1}/{images.length}
+        </div>
+      )}
+
+      {/* bottom-right “next” pill */}
+      {hasMultiple && (
+        <button
+          type="button"
+          onClick={handleImageClick}
+          className="absolute bottom-2 right-2 z-10 inline-flex items-center gap-1 rounded-full bg-black/60 text-white text-[11px] px-2.5 py-1 backdrop-blur-sm hover:bg-black/70"
+          aria-label="View next image"
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+          {images.length}
+        </button>
+      )}
+
+      {/* side arrows */}
+      {hasMultiple && (
+        <>
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            aria-label="Previous image"
+            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 text-white p-2 hover:bg-black/60 focus:outline-none focus:ring-2 focus:ring-white/70"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => go(1)}
+            aria-label="Next image"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 text-white p-2 hover:bg-black/60 focus:outline-none focus:ring-2 focus:ring-white/70"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+
+
 export default function InventoryPage() {
-  const cart = useCart();	
+  const cart = useCart();
   return (
     <div className="min-h-screen">
       <Navigation />
@@ -318,7 +428,7 @@ export default function InventoryPage() {
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-pretty">
               Browse our available items ready to ship. All pieces are handcrafted and in stock now.
-            </p>            
+            </p>
           </div>
         </div>
       </section>
@@ -359,28 +469,22 @@ export default function InventoryPage() {
 
                       const showBuyNow = item.stock?.toLowerCase().includes("in stock") || isOnSale;
 
+                      // NEW: normalized images
+                      const images = getImages(item);
+                      const firstImage = images[0];
+                      const firstImageAbs = firstImage?.startsWith("/images/")
+                        ? `${location.origin}${firstImage}`
+                        : firstImage;
+
                       return (
                         <Card key={item.id} className="overflow-hidden flex flex-col">
-                          <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-                            {item.image?.startsWith("/images/") ? (
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                fill
-                                className="object-contain"
-                                sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-                                quality={92}
-                              />
-                            ) : (
-                              <div className="absolute inset-0 grid place-items-center text-muted-foreground">
-                                <span className="px-3 text-sm">Image coming soon</span>
-                              </div>
-                            )}
+						<div className="relative">
+						  <InventoryImageCarousel images={images} alt={item.name} />
 
-                            <Badge className={"absolute top-4 right-4 " + (isOnSale ? SALE_STYLES[SALE_THEME].badge : "bg-secondary text-secondary-foreground")}>
-                              {item.stock}
-                            </Badge>
-                          </div>
+						  <Badge className={"absolute top-4 right-4 " + (isOnSale ? SALE_STYLES[SALE_THEME].badge : "bg-secondary text-secondary-foreground")}>
+							{item.stock}
+						  </Badge>
+						</div>
                           <CardHeader className="p-3 pb-0 space-y-0">
                             <div className="flex items-start justify-between gap-2">
                               <CardTitle className="font-serif text-xl leading-tight !mt-0 !mb-0">{item.name}</CardTitle>
@@ -394,58 +498,60 @@ export default function InventoryPage() {
                                 <span className="text-sm font-medium">{item.size}</span>
                               </div>
                               <div className="flex justify-between items-center pt-1">
-								  <span className="text-sm text-muted-foreground">Price:</span>
+                                <span className="text-sm text-muted-foreground">Price:</span>
 
-								  {isOnSale && item.salePrice ? (
-									<span className="text-2xl font-bold">
-									  <span className="line-through text-muted-foreground mr-2">{item.price}</span>
-									  <span className={SALE_STYLES[SALE_THEME].price}>{item.salePrice}</span>
-									</span>
-								  ) : (
-									<span className="text-2xl font-bold text-primary">{item.price}</span>
-								  )}
-								</div>
-							  {/*
-                              <p className="text-[12px] text-muted-foreground mt-1">Shipping: {((item.shippingCents ?? (item.category === "cutting-boards" ? 5000 : 1500)) / 100).toLocaleString(undefined, { style: "currency", currency: "USD" })} (insured where applicable) · Free local pickup available</p>
-							  */}
+                                {isOnSale && item.salePrice ? (
+                                  <span className="text-2xl font-bold">
+                                    <span className="line-through text-muted-foreground mr-2">{item.price}</span>
+                                    <span className={SALE_STYLES[SALE_THEME].price}>{item.salePrice}</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-2xl font-bold text-primary">{item.price}</span>
+                                )}
+                              </div>
+                              {/* <p className="text-[12px] text-muted-foreground mt-1">Shipping: {((item.shippingCents ?? (item.category === "cutting-boards" ? 5000 : 1500)) / 100).toLocaleString(undefined, { style: "currency", currency: "USD" })} (insured where applicable) · Free local pickup available</p> */}
                             </div>
                           </CardContent>
                           <CardFooter className="p-3 pt-0 gap-2 flex-col sm:flex-row">
-							  <Button
-								type="button"
-								onClick={() => cart.addItem({
-								  id: item.id,
-								  name: item.name,
-								  priceInCents: (isOnSale && item.salePrice ? priceToCents(item.salePrice)! : priceToCents(item.price)!),
-								  image: item.image?.startsWith("/images/") ? `${location.origin}${item.image}` : undefined,
-								  shippingCents: typeof item.shippingCents === "number" ? item.shippingCents : (item.category === "cutting-boards" ? 5000 : 1500),
-								})}
-								className="w-full sm:w-auto"
-								size="sm"
-							  >
-								Add to Cart
-							  </Button>
+                            <Button
+                              type="button"
+                              onClick={() => cart.addItem({
+                                id: item.id,
+                                name: item.name,
+                                priceInCents: (isOnSale && item.salePrice ? priceToCents(item.salePrice)! : priceToCents(item.price)!),
+                                image: firstImageAbs,
+                                shippingCents: typeof item.shippingCents === "number" ? item.shippingCents : (item.category === "cutting-boards" ? 5000 : 1500),
+                              })}
+                              className="w-full sm:w-auto"
+                              size="sm"
+                            >
+                              Add to Cart
+                            </Button>
 
-							  <Button
-								onClick={async () => {
-								  const payload = [{
-									id: item.id,
-									name: item.name,
-									priceInCents: (isOnSale && item.salePrice ? priceToCents(item.salePrice)! : priceToCents(item.price)!),
-									image: item.image?.startsWith("/images/") ? `${location.origin}${item.image}` : undefined,
-									shippingCents: typeof item.shippingCents === "number" ? item.shippingCents : (item.category === "cutting-boards" ? 5000 : 1500),
-								  }];
-								  const res = await fetch("/api/checkout", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ items: payload }) });
-								  const { url } = await res.json();
-								  window.location.href = url;
-								}}
-								variant={isOnSale ? undefined : "outline"}
-								className={isOnSale ? `${SALE_STYLES[SALE_THEME].button}` : "w-full sm:w-auto"}
-								size="sm"
-							  >
-								{isOnSale ? "Buy Now (On Sale)" : "Buy Now"}
-							  </Button>
-							</CardFooter>
+                            <Button
+                              onClick={async () => {
+                                const payload = [{
+                                  id: item.id,
+                                  name: item.name,
+                                  priceInCents: (isOnSale && item.salePrice ? priceToCents(item.salePrice)! : priceToCents(item.price)!),
+                                  image: firstImageAbs,
+                                  shippingCents: typeof item.shippingCents === "number" ? item.shippingCents : (item.category === "cutting-boards" ? 5000 : 1500),
+                                }];
+                                const res = await fetch("/api/checkout", {
+                                  method: "POST",
+                                  headers: {"Content-Type":"application/json"},
+                                  body: JSON.stringify({ items: payload })
+                                });
+                                const { url } = await res.json();
+                                window.location.href = url;
+                              }}
+                              variant={isOnSale ? undefined : "outline"}
+                              className={isOnSale ? `${SALE_STYLES[SALE_THEME].button}` : "w-full sm:w-auto"}
+                              size="sm"
+                            >
+                              {isOnSale ? "Buy Now (On Sale)" : "Buy Now"}
+                            </Button>
+                          </CardFooter>
                         </Card>
                       );
                     })}
