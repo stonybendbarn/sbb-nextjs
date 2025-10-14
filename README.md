@@ -1,30 +1,32 @@
-# Woodworking website build for Stony Bend Barn
+# Stony Bend Barn — Website (Next.js + Vercel)
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A modern, fast, and lightweight website for **Stony Bend Barn** (cutting boards, charcuterie boards, chess/cribbage, and more).  
+Originally scaffolded with **v0**, now maintained in **GitHub** and deployed via **Vercel**.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/stonybendbarn-1169s-projects/v0-woodworking-website-build)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/DGuuh0rkBZb)
+## Tech Stack
+- Next.js 14 (App Router) + TypeScript
+- Tailwind CSS
+- Vercel (preview + production deploys)
+- Resend (email: inquiries/custom orders)
+- Stripe (e-commerce groundwork; production payments gated by env keys)
+- *(Optional)* S3 / Vercel Blob for large image hosting
 
-## Overview
+## Features
+- Product inventory & detail pages (images, dimensions, pricing)
+- “Contact to Purchase” flow using Resend (server route + email template)
+- **E-commerce ready**: Stripe keys & checkout routes wired; enable by adding live keys
+- SEO basics (metadata, Open Graph, social share images)
+- Responsive design with Tailwind
+- Preview Deploys for every PR to validate changes before going live
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+### Roadmap
+- Multi-image carousel on Inventory tiles
+- Cart drawer
+- Swipe support on mobile
 
-## Deployment
-
-Your project is live at:
-
-**[https://vercel.com/stonybendbarn-1169s-projects/v0-woodworking-website-build](https://vercel.com/stonybendbarn-1169s-projects/v0-woodworking-website-build)**
-
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.app/chat/projects/DGuuh0rkBZb](https://v0.app/chat/projects/DGuuh0rkBZb)**
-
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+## Repository Model (How We Work)
+- **GitHub is the source of truth.**
+- **Vercel** watches the repo:
+  - Push/merge to a feature branch → **Preview Deployment**
+  - Merge to `main` → **Production Deployment (LIVE)**
+- **v0** is used as an assistant to generate components/edits that land as **Pull Requests** to this repo (no direct edits in Vercel).
