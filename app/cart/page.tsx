@@ -1,116 +1,141 @@
 // app/cart/page.tsx
 "use client";
 
+import Link from "next/link";        
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import { useCart } from "@/components/cart-context";
 import { Button } from "@/components/ui/button";
-
-function cents(n: number) {
-  return (n / 100).toLocaleString(undefined, { style: "currency", currency: "USD" });
-}
-
-// --- Shipping discount read/compute (client-display only) ---
-const raw = process.env.NEXT_PUBLIC_SHIPPING_DISCOUNT ?? "0";
-const pctNum = Number(raw);
-const clampedPct = Number.isFinite(pctNum) ? Math.min(100, Math.max(0, pctNum)) : 0;
-const SHIPPING_DISCOUNT_F = clampedPct / 100;
+import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
 
 export default function CartPage() {
-  const { items, removeItem, clear, subtotalCents, shippingCents } = useCart();
+  const { items, remove, setQty, subtotalCents } = useCart();
+  const params = useSearchParams();
+  const canceled = params.get("canceled") === "1";
 
-  const discountedShippingCents = Math.max(
-    0,
-    Math.round(shippingCents * (1 - SHIPPING_DISCOUNT_F))
-  );
+  // Gate rendering until client mounts to avoid a flash of "empty"
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) {
+    return (
+      <main className="mx-auto max-w-4xl p-6">
+        <h1 className="mb-4 text-2xl font-semibold">Your Cart</h1>
+        <p>Loading…</p>
+      </main>
+    );
+  }
 
-  const checkout = async () => {
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items }),
-    });
-    const { url } = await res.json();
-    window.location.href = url;
-  };
+  if (!items.length) {
+    return (
+      <main className="mx-auto max-w-4xl p-6">
+        <h1 className="mb-4 text-2xl font-semibold">Your Cart</h1>
+        <p>Your cart is empty.</p>
+		<Button asChild>
+          <Link href="/inventory">Back to Inventory</Link>
+        </Button>
+      </main>
+    );
+  }
 
   return (
-    <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold mb-6">Your Cart</h1>
-
-      {items.length === 0 ? (
-        <div className="text-muted-foreground">
-          Cart is empty.{" "}
-          <Link className="underline" href="/inventory">Back to inventory</Link>
-        </div>
-      ) : (
-        <div className="grid gap-6">
-          <div className="grid gap-3">
-            {items.map(it => (
-              <div key={it.id} className="flex items-center gap-3 border rounded-lg p-3">
-                {it.image ? (
-                  <div className="relative h-16 w-16 bg-muted rounded">
-                    <Image src={it.image} alt={it.name} fill className="object-contain" />
-                  </div>
-                ) : <div className="h-16 w-16 bg-muted rounded" />}
-
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{it.name}</div>
-                  <div className="text-sm text-muted-foreground">{cents(it.priceInCents)}</div>
-                  {typeof it.shippingCents === "number" &&
-                    <div className="text-xs text-muted-foreground">
-                      Shipping: {cents(it.shippingCents)}
-                    </div>}
-                </div>
-
-                <Button variant="outline" onClick={() => removeItem(it.id)}>Remove</Button>
-              </div>
-            ))}
-          </div>
-
-          <div className="border-t pt-4 space-y-2 max-w-md">
-            <div className="flex justify-between text-sm">
-              <span>Subtotal</span>
-              <span>{cents(subtotalCents)}</span>
-            </div>
-
-            {/* Original shipping (strike-through if discount applies) */}
-            <div className="flex justify-between text-sm">
-              <span>Shipping</span>
-              <span>
-                {SHIPPING_DISCOUNT_F > 0 ? (
-                  <>
-                    <span className="line-through mr-2">{cents(shippingCents)}</span>
-                    <span>{cents(discountedShippingCents)}</span>
-                  </>
-                ) : (
-                  cents(shippingCents)
-                )}
-              </span>
-            </div>
-
-            {/* Discount note */}
-            {SHIPPING_DISCOUNT_F > 0 && (
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>
-                  Shipping discount{clampedPct === 100 ? " (Free Shipping)" : ""} — {clampedPct}%
-                </span>
-                <span>-{cents(shippingCents - discountedShippingCents)}</span>
-              </div>
-            )}
-
-            <div className="flex justify-between font-semibold text-base">
-              <span>Estimated total</span>
-              <span>{cents(subtotalCents + discountedShippingCents)}</span>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Button variant="outline" onClick={clear}>Clear</Button>
-              <Button onClick={checkout} className="flex-1">Checkout</Button>
-            </div>
-          </div>
+    <main className="mx-auto max-w-4xl p-6 space-y-6">
+      {canceled && (
+        <div className="rounded-md bg-yellow-100 px-3 py-2 text-sm">
+          Checkout was canceled — your items are still in the cart.
         </div>
       )}
+
+      <h1 className="text-2xl font-semibold">Your Cart</h1>
+
+      <ul className="divide-y">
+        {items.map((i) => (
+          <li key={i.id} className="flex items-center gap-4 py-4">
+            {/* Image */}
+            <div className="h-20 w-20 relative rounded overflow-hidden bg-neutral-100">
+              {i.image ? (
+                <Image
+                  src={i.image}
+                  alt={i.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : null}
+            </div>
+
+            {/* Name / price */}
+            <div className="flex-1">
+              <div className="font-medium">{i.name}</div>
+              <div className="text-sm text-neutral-600">
+                ${(i.price_cents / 100).toFixed(2)}
+              </div>
+            </div>
+
+            {/* Qty control */}
+            <div className="flex items-center gap-2">
+              <label htmlFor={`qty-${i.id}`} className="text-sm text-neutral-600">
+                Qty
+              </label>
+              <Input
+                id={`qty-${i.id}`}
+                type="number"
+                min={1}
+                value={i.quantity}
+                onChange={(e) => {
+                  const q = Math.max(1, parseInt(e.target.value || "1", 10));
+                  setQty(i.id, q);
+                }}
+                className="w-20"
+              />
+            </div>
+
+            {/* Line total */}
+            <div className="w-24 text-right font-medium">
+              ${((i.price_cents * i.quantity) / 100).toFixed(2)}
+            </div>
+
+            {/* Remove */}
+            <Button
+              variant="secondary"
+              onClick={() => remove(i.id)}
+              className="ml-2"
+            >
+              Remove
+            </Button>
+          </li>
+        ))}
+      </ul>
+
+      {/* Footer: subtotal + checkout */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-lg">
+          Subtotal: <span className="font-semibold">${(subtotalCents / 100).toFixed(2)}</span>
+        </div>
+
+        <div className="flex gap-3">
+          {/* New: continue shopping */}
+          <Button variant="secondary" asChild>
+            <Link href="/inventory">Continue Shopping</Link>
+          </Button>
+
+          <Button
+            onClick={async () => {
+              const res = await fetch("/api/checkout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  items: items.map((i) => ({ id: i.id, qty: 1 })),
+                }),
+              });
+              if (!res.ok) return console.error(await res.text());
+              const { url } = await res.json();
+              window.location.href = url;
+            }}
+          >
+            Proceed to Checkout
+          </Button>
+        </div>
+      </div>
     </main>
   );
 }

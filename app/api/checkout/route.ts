@@ -8,14 +8,35 @@ export const dynamic = "force-dynamic";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+const isHttpsPublic = BASE_URL.startsWith("https://");
 
 // Optional knobs (all optional)
 const FREE_SHIP_THRESHOLD_CENTS = Number(process.env.FREE_SHIP_THRESHOLD_CENTS ?? 50000); // e.g. 20000 for $200
 const SHIPPING_DISCOUNT_PERCENT = Number(process.env.SHIPPING_DISCOUNT_PERCENT ?? 0); // e.g. 20 for 20% off shipping
-const ALLOWED_COUNTRIES = (process.env.SHIP_TO_COUNTRIES ?? "US").split(",").map(s => s.trim().toUpperCase());
+// Allowed countries for address collection (e.g., SHIP_TO_COUNTRIES="US,CA")
+const ALLOWED_COUNTRIES = (process.env.SHIP_TO_COUNTRIES ?? "US")
+  .split(",")
+  .map(s => s.trim().toUpperCase())
+  .filter(Boolean) as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[];
+
+function toAbsoluteUrl(src?: string | null) {
+  if (!src) return undefined;
+  if (/^https?:\/\//i.test(src)) return src;
+  const base = BASE_URL.replace(/\/+$/, "");
+  const path = src.startsWith("/") ? src : `/${src}`;
+  return `${base}${path}`;
+}
 
 function effectivePriceCents(price_cents: number, sale_price_cents: number | null) {
   return (sale_price_cents ?? price_cents) || 0;
+}
+
+function toAbsoluteUrlOld(src?: string | null): string | undefined {
+  if (!src) return undefined;
+  if (/^https?:\/\//i.test(src)) return src;       // already absolute
+  const base = (process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000").replace(/\/+$/, "");
+  const path = src.startsWith("/") ? src : `/${src}`;
+  return `${base}${path}`;
 }
 
 function defaultShippingForCategory(category: string): number {
@@ -39,97 +60,107 @@ function applyShippingDiscount(base: number): number {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const productId = String(body.productId); // your products.id is TEXT
 
-    if (!productId) {
-      return new NextResponse("Missing productId", { status: 400 });
-    }
+    // Load the product (we’ll support single-item checkout for now)
+    // --- Cart-aware checkout: fetch all items in the request ---
+	const ids: string[] = Array.isArray(body?.items)
+	  ? body.items.map((i: { id: string }) => String(i.id))
+	  : body?.productId
+		? [String(body.productId)]
+		: [];
 
-    // Load the product
-    const { rows } = await sql/*sql*/`
-      SELECT id, name, category, price_cents, sale_price_cents, stock_status, images, shipping_cents
-      FROM products
-      WHERE id = ${productId}
-      LIMIT 1;
-    `;
-    if (!rows.length) return new NextResponse("Product not found", { status: 404 });
+	if (!ids.length) {
+	  return NextResponse.json({ error: "No items to purchase" }, { status: 400 });
+	}
 
-    const p = rows[0] as {
-      id: string; // TEXT
-      name: string;
-      category: string;
-      price_cents: number;
-      sale_price_cents: number | null;
-      stock_status: string | null;
-      images?: string[] | null;
-      shipping_cents: number | null;
-    };
+	// Pull all products
+	const { rows } = await sql/*sql*/`
+	  SELECT
+		id,
+		name,
+		category,
+		price_cents,
+		sale_price_cents,
+		stock_status,
+		images,
+		shipping_cents
+	  FROM products
+	  WHERE id = ANY(${ids})
+	`;
 
-    if ((p.stock_status || "").toLowerCase() === "sold") {
-      return new NextResponse("Product already sold", { status: 409 });
-    }
+	// Build product line_items and compute per-item shipping
+	const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+	let shipping_total_cents = 0;
 
-    // Effective merchandise price
-    const itemAmount = effectivePriceCents(p.price_cents, p.sale_price_cents);
-    if (itemAmount <= 0) return new NextResponse("Invalid price", { status: 422 });
+	for (const row of rows as Array<{
+	  id: string;
+	  name: string;
+	  category: string;
+	  price_cents: number;
+	  sale_price_cents: number | null;
+	  stock_status: string | null;
+	  images?: string[] | null;
+	  shipping_cents: number | null;
+	}>) {
+	  const sold = (row.stock_status || "").toLowerCase() === "sold";
+	  if (sold) continue;
 
-    // Compute base shipping for this item
-    const baseShip = p.shipping_cents ?? defaultShippingForCategory(p.category);
-    const discountedShip = applyShippingDiscount(baseShip);
+	  const unit_amount = (row.sale_price_cents ?? row.price_cents) || 0;
+	  if (unit_amount <= 0) continue;
 
-    // Free shipping if threshold met
-    const finalShip = itemAmount >= FREE_SHIP_THRESHOLD_CENTS ? 0 : discountedShip;
+	  const imageUrl = isHttpsPublic ? toAbsoluteUrl(row.images?.[0]) : undefined;
 
-    // Stripe Checkout config
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      client_reference_id: p.id, // TEXT is fine
-      metadata: {
-        product_id: p.id,
-        category: p.category,
-      },
-      success_url: `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${BASE_URL}/inventory`,
+	  line_items.push({
+		quantity: 1,
+		price_data: {
+		  currency: "usd",
+		  unit_amount,
+		  product_data: {
+			name: row.name,
+			images: imageUrl ? [imageUrl] : undefined,
+		  },
+		},
+	  });
 
-      // Collect address for shipping labels and tax rules (if you enable Automatic Tax later)
-      shipping_address_collection: { allowed_countries: ALLOWED_COUNTRIES as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] },
+	  // Per-item shipping with discount/threshold logic
+	  const baseShip = row.shipping_cents ?? defaultShippingForCategory(row.category);
+	  const discountedShip = applyShippingDiscount(baseShip);
+	  const finalShip = unit_amount >= FREE_SHIP_THRESHOLD_CENTS ? 0 : discountedShip;
+	  shipping_total_cents += Math.max(0, finalShip);
+	}
 
-      // Offer exactly one shipping option whose amount we computed server-side.
-      // You can add more options (e.g., Expedited) by pushing another shipping_rate_data block.
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: "fixed_amount",
-            fixed_amount: { amount: finalShip, currency: "usd" },
-            display_name: finalShip === 0 ? "Free Shipping" : "Standard Shipping",
-            delivery_estimate: {
-              minimum: { unit: "business_day", value: 3 },
-              maximum: { unit: "business_day", value: 7 },
-            },
-          },
-        },
-      ],
+	if (!line_items.length) {
+	  return NextResponse.json({ error: "All selected items are unavailable" }, { status: 409 });
+	}
 
-      // Allow promo codes (optional)
-      allow_promotion_codes: true,
+	// Add a separate "Shipping" line item (since you compute per-item shipping)
+	if (shipping_total_cents > 0) {
+	  line_items.push({
+		quantity: 1,
+		price_data: {
+		  currency: "usd",
+		  unit_amount: shipping_total_cents,
+		  product_data: { name: "Shipping" },
+		},
+	  });
+	}
 
-      // The product line item (1 qty). Use absolute image URL if you want it to show on Stripe’s page.
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            unit_amount: itemAmount,
-            product_data: {
-              name: p.name,
-              // images: p.images?.length ? [`${BASE_URL}${p.images[0]}`] : undefined,
-            },
-          },
-          quantity: 1,
-        },
-      ],
-    });
+	// Create the session
+	// app/api/checkout/route.ts
+	const session = await stripe.checkout.sessions.create({
+	  mode: "payment",
+	  line_items,
+	  success_url: `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`, // ✅
+	  cancel_url: `${BASE_URL}/cart?canceled=1`,
+	  shipping_address_collection: { allowed_countries: ALLOWED_COUNTRIES },
+	  allow_promotion_codes: true,
+	});
+	return NextResponse.json({ url: session.url }, { status: 200 });
 
-    return NextResponse.json({ url: session.url }, { status: 200 });
+	return NextResponse.json({ url: session.url }, { status: 200 });
+
+
+
   } catch (e) {
     console.error("Checkout POST error:", e);
     return new NextResponse("Internal error", { status: 500 });
