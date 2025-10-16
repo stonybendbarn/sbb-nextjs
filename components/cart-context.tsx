@@ -1,57 +1,73 @@
-// components/cart-context.tsx
-
 "use client";
+
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 export type CartItem = {
-  id: number | string;
+  id: string;          // DB id (text)
   name: string;
-  priceInCents: number;
-  image?: string;
-  shippingCents?: number;
+  price_cents: number; // store cents (int)
+  image?: string | null;
+  quantity: number;
 };
 
-type CartContextValue = {
+type CartState = {
   items: CartItem[];
-  addItem: (item: CartItem) => void;
-  removeItem: (id: number | string) => void;
+  add: (item: Omit<CartItem, "quantity">, qty?: number) => void;
+  remove: (id: string) => void;
+  setQty: (id: string, qty: number) => void;
   clear: () => void;
-  subtotalCents: number;
-  shippingCents: number; // sum of per‑item shipping
+  count: number;
 };
 
-const CartContext = createContext<CartContextValue | undefined>(undefined);
+const CartContext = createContext<CartState | null>(null);
+const STORAGE_KEY = "sbb-cart-v1";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  // Load/save to localStorage
+  // load from localStorage on mount
   useEffect(() => {
-    const raw = localStorage.getItem("sbb_cart_v1");
-    if (raw) {
-      try { setItems(JSON.parse(raw)); } catch {}
-    }
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setItems(JSON.parse(raw));
+    } catch {}
   }, []);
+
+  // persist on change
   useEffect(() => {
-    localStorage.setItem("sbb_cart_v1", JSON.stringify(items));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch {}
   }, [items]);
 
-  const api = useMemo<CartContextValue>(() => ({
-    items,
-    addItem: (item) => {
-      setItems((curr) => {
-        // One‑of‑a‑kind: prevent duplicates by id
-        if (curr.some((c) => c.id === item.id)) return curr;
-        return [...curr, item];
-      });
-    },
-    removeItem: (id) => setItems((curr) => curr.filter((c) => c.id !== id)),
-    clear: () => setItems([]),
-    subtotalCents: items.reduce((s, it) => s + it.priceInCents, 0),
-    shippingCents: items.reduce((s, it) => s + (it.shippingCents ?? 0), 0),
-  }), [items]);
+  const add: CartState["add"] = (item, qty = 1) => {
+    setItems(prev => {
+      const existing = prev.find(p => p.id === item.id);
+      if (!existing) return [...prev, { ...item, quantity: Math.max(1, qty) }];
+      return prev.map(p =>
+        p.id === item.id ? { ...p, quantity: p.quantity + qty } : p
+      );
+    });
+  };
 
-  return <CartContext.Provider value={api}>{children}</CartContext.Provider>;
+  const remove: CartState["remove"] = (id) =>
+    setItems(prev => prev.filter(p => p.id !== id));
+
+  const setQty: CartState["setQty"] = (id, qty) =>
+    setItems(prev =>
+      prev.map(p => (p.id === id ? { ...p, quantity: Math.max(1, qty) } : p))
+    );
+
+  const clear = () => setItems([]);
+
+  const count = useMemo(
+    () => items.reduce((n, i) => n + i.quantity, 0),
+    [items]
+  );
+
+  const value: CartState = { items, add, remove, setQty, clear, count };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
@@ -59,3 +75,4 @@ export function useCart() {
   if (!ctx) throw new Error("useCart must be used within CartProvider");
   return ctx;
 }
+
