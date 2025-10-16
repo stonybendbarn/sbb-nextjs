@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Images as ImagesIcon, Package } from "lucide-react";
+import AddToCartButton from "@/components/add-to-cart-button";
+
 
 type Product = {
   id: number;
@@ -82,6 +84,7 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
                 const isSold   = status === "sold";
                 const isInStock= status === "in stock";
                 const canBuy   = isInStock || isOnSale;
+				const priceForCart = isOnSale && item.sale_price_cents ? item.sale_price_cents : item.price_cents;
                 const images   = item.images ?? [];
 
                 return (
@@ -117,36 +120,47 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
                     </CardContent>
 
                     <CardFooter className="p-3 pt-0 gap-2 flex-col sm:flex-row">
-                      {!isSold ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          className={isOnSale ? `${SALE_STYLES[SALE_THEME].button}` : "w-full sm:w-auto"}
-                          disabled={!canBuy}
-                          onClick={async () => {
-                            try {
-                              const res = await fetch("/api/checkout", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ productId: item.id }),
-                              });
-                              if (!res.ok) {
-                                console.error("Checkout create failed", await res.text());
-                                return;
-                              }
-                              const { url } = await res.json();
-                              window.location.href = url;
-                            } catch (e) {
-                              console.error("Checkout error", e);
-                            }
-                          }}
-                        >
-                          {canBuy ? (isOnSale ? "Buy Now (On Sale)" : "Buy Now") : "Sold Out"}
-                        </Button>
-                      ) : (
-                        <Button disabled size="sm" variant="outline">Sold</Button>
-                      )}
-                    </CardFooter>
+					  {isSold ? (
+						<Button disabled size="sm" variant="outline">Sold</Button>
+					  ) : (
+						<div className="w-full flex flex-col sm:flex-row gap-2">
+						  <Button
+							type="button"
+							size="sm"
+							className={isOnSale ? `${SALE_STYLES[SALE_THEME].button}` : "w-full sm:w-auto"}
+							disabled={!canBuy}
+							onClick={async () => {
+							  try {
+								const res = await fetch("/api/checkout", {
+								  method: "POST",
+								  headers: { "Content-Type": "application/json" },
+								  body: JSON.stringify({ productId: item.id }),
+								});
+								if (!res.ok) {
+								  console.error("Checkout create failed", await res.text());
+								  return;
+								}
+								const { url } = await res.json();
+								window.location.href = url;
+							  } catch (e) {
+								console.error("Checkout error", e);
+							  }
+							}}
+						  >
+							{canBuy ? (isOnSale ? "Buy Now (On Sale)" : "Buy Now") : "Sold Out"}
+						  </Button>
+
+						  <AddToCartButton
+							id={String(item.id)}               // cast number → string
+							name={item.name}
+							price_cents={priceForCart}
+							image={images[0] ?? null}
+							disabled={!canBuy}
+						  />
+
+						</div>
+					  )}
+					</CardFooter>
                   </Card>
                 );
               })}
