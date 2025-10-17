@@ -9,7 +9,7 @@ import { Images as ImagesIcon, Package } from "lucide-react";
 import AddToCartButton from "@/components/add-to-cart-button";
 import { useState, useCallback, KeyboardEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
+export const dynamic = "force-dynamic";
 
 type Product = {
   id: number;
@@ -155,7 +155,8 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {filtered.map((item) => {
                 const status = (item.stock_status || "").toLowerCase();
-                const isOnSale = status === "on sale";
+				const hasSalePrice = item.sale_price_cents != null && item.sale_price_cents < item.price_cents;
+				const isOnSale = status === "on sale" || hasSalePrice;
                 const isSold   = status === "sold";
                 const isInStock= status === "in stock";
                 const canBuy   = isInStock || isOnSale;
