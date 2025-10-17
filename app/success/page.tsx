@@ -1,34 +1,22 @@
 // app/success/page.tsx
-import Link from "next/link";
+"use client";
+export const dynamic = "force-dynamic";
 
-export default function SuccessPage({
-  searchParams,
-}: {
-  searchParams?: { session_id?: string; pid?: string };
-}) {
-  const sessionId = searchParams?.session_id; // present if we include it in success_url
-  const productId = searchParams?.pid;
+import { useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { useCart } from "@/components/cart-context";
+
+export default function SuccessPage() {
+  const { clear } = useCart();
+  useEffect(() => { clear(); }, [clear]);
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6 py-24">
-      <div className="max-w-xl text-center">
-        <h1 className="text-3xl md:text-4xl font-bold">Thank you! 🎉</h1>
-        <p className="mt-3 text-muted-foreground">
-          Your payment was successful. We’ll email you shortly with details and shipping info.
-        </p>
-
-        {sessionId && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Ref: <span className="font-mono">{sessionId}</span>
-          </p>
-        )}
-        {productId && (
-          <p className="mt-1 text-sm text-muted-foreground">Item ID: {productId}</p>
-        )}
-
-        <div className="mt-6">
-          <Link href="/inventory" className="underline">Back to Inventory</Link>
-        </div>
+    <main className="mx-auto max-w-2xl p-6 space-y-4">
+      <h1 className="text-2xl font-semibold">Thank you! 🎉</h1>
+      <p>Your order was received. We’ll send an email with the details.</p>
+      <div className="pt-4">
+        <Button asChild><Link href="/inventory">Back to Inventory</Link></Button>
       </div>
     </main>
   );

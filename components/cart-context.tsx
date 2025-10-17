@@ -1,57 +1,79 @@
 // components/cart-context.tsx
-
 "use client";
+
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 export type CartItem = {
-  id: number | string;
+  id: string;
   name: string;
-  priceInCents: number;
-  image?: string;
-  shippingCents?: number;
+  price_cents: number;
+  image?: string | null;
+  quantity: number;
 };
 
-type CartContextValue = {
+type CartState = {
   items: CartItem[];
-  addItem: (item: CartItem) => void;
-  removeItem: (id: number | string) => void;
+  add: (item: Omit<CartItem, "quantity">, qty?: number) => void;
+  remove: (id: string) => void;
+  setQty: (id: string, qty: number) => void;
   clear: () => void;
+  count: number;
   subtotalCents: number;
-  shippingCents: number; // sum of per‑item shipping
 };
 
-const CartContext = createContext<CartContextValue | undefined>(undefined);
+const CartContext = createContext<CartState | null>(null);
+const STORAGE_KEY = "sbb-cart-v1";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-
-  // Load/save to localStorage
-  useEffect(() => {
-    const raw = localStorage.getItem("sbb_cart_v1");
-    if (raw) {
-      try { setItems(JSON.parse(raw)); } catch {}
+  // 1) Initialize from localStorage synchronously (client only)
+  const [items, setItems] = useState<CartItem[]>(() => {
+    try {
+      if (typeof window === "undefined") return [];
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
     }
-  }, []);
+  });
+
+  // 2) Track when we've hydrated so we don't write [] over real data
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
-    localStorage.setItem("sbb_cart_v1", JSON.stringify(items));
-  }, [items]);
+    // Ensure we read once more after mount (covers SSR edge cases)
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setItems(JSON.parse(raw));
+    } catch {}
+    setHydrated(true);
+  }, []);
 
-  const api = useMemo<CartContextValue>(() => ({
-    items,
-    addItem: (item) => {
-      setItems((curr) => {
-        // One‑of‑a‑kind: prevent duplicates by id
-        if (curr.some((c) => c.id === item.id)) return curr;
-        return [...curr, item];
-      });
-    },
-    removeItem: (id) => setItems((curr) => curr.filter((c) => c.id !== id)),
-    clear: () => setItems([]),
-    subtotalCents: items.reduce((s, it) => s + it.priceInCents, 0),
-    shippingCents: items.reduce((s, it) => s + (it.shippingCents ?? 0), 0),
-  }), [items]);
+  // 3) Persist ONLY after hydration
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    } catch {}
+  }, [items, hydrated]);
 
-  return <CartContext.Provider value={api}>{children}</CartContext.Provider>;
+  // Unique-item behavior (1 of each)
+  const add: CartState["add"] = (item, qty = 1) => {
+    setItems(prev => (prev.some(p => p.id === item.id)
+      ? prev
+      : [...prev, { ...item, quantity: Math.max(1, qty) }]));
+  };
+  const remove: CartState["remove"] = (id) => setItems(prev => prev.filter(p => p.id !== id));
+  const setQty: CartState["setQty"] = (id, _qty) =>
+    setItems(prev => prev.map(p => (p.id === id ? { ...p, quantity: 1 } : p)));
+  const clear = () => setItems([]);
+
+  const count = useMemo(() => items.reduce((n, i) => n + i.quantity, 0), [items]);
+  const subtotalCents = useMemo(
+    () => items.reduce((n, i) => n + i.price_cents * i.quantity, 0),
+    [items]
+  );
+
+  const value: CartState = { items, add, remove, setQty, clear, count, subtotalCents };
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
