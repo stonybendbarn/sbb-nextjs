@@ -57,6 +57,16 @@ function applyShippingDiscount(base: number): number {
   return Math.max(0, discounted);
 }
 
+function getOrigin(req: NextRequest) {
+  if (process.env.NEXT_PUBLIC_BASE_URL) {
+    return process.env.NEXT_PUBLIC_BASE_URL.replace(/\/+$/, "");
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return new URL(req.url).origin;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -145,9 +155,7 @@ export async function POST(req: NextRequest) {
 	  });
 	}
 
-	const origin =
-    process.env.NEXT_PUBLIC_BASE_URL
-    ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : new URL(req.url).origin);
+	const origin = getOrigin(req);
 
 	// Create the session	
 	const session = await stripe.checkout.sessions.create({
