@@ -1,4 +1,8 @@
 // app/inventory/page.tsx
+export const dynamic = "force-dynamic";   // make the route fully dynamic
+export const revalidate = 0;              // (belt & suspenders, optional)
+
+import { unstable_noStore as noStore } from "next/cache";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { Package } from "lucide-react";
@@ -6,6 +10,7 @@ import { sql } from "@vercel/postgres";
 import InventoryGrid from "@/components/InventoryGrid";
 
 async function fetchProducts() {
+  noStore(); // opt out of RSC caching for this fetch path
   const { rows } = await sql/*sql*/`
     select id, name, category, size, price_cents, sale_price_cents, stock_status,
            images, description, shipping_cents
