@@ -12,7 +12,7 @@ const isHttpsPublic = BASE_URL.startsWith("https://");
 
 // Optional knobs (all optional)
 const FREE_SHIP_THRESHOLD_CENTS = Number(process.env.FREE_SHIP_THRESHOLD_CENTS ?? 50000); // e.g. 20000 for $200
-const SHIPPING_DISCOUNT_PERCENT = Number(process.env.SHIPPING_DISCOUNT_PERCENT ?? 0); // e.g. 20 for 20% off shipping
+const SHIPPING_DISCOUNT_PERCENT = Number(process.env.SHIPPING_DISCOUNT ?? 0); // e.g. 20 for 20% off shipping
 // Allowed countries for address collection (e.g., SHIP_TO_COUNTRIES="US,CA")
 const ALLOWED_COUNTRIES = (process.env.SHIP_TO_COUNTRIES ?? "US")
   .split(",")
@@ -102,6 +102,9 @@ export async function POST(req: NextRequest) {
 	const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
 	let shipping_total_cents = 0;
 
+	// Track order subtotal for free-shipping threshold
+	let orderSubtotalCents = 0;
+
 	for (const row of rows as Array<{
 	  id: string;
 	  name: string;
@@ -116,6 +119,7 @@ export async function POST(req: NextRequest) {
 	  if (sold) continue;
 
 	  const unit_amount = (row.sale_price_cents ?? row.price_cents) || 0;
+	  orderSubtotalCents += unit_amount;
 	  if (unit_amount <= 0) continue;
 
 	  const imageUrl = isHttpsPublic ? toAbsoluteUrl(row.images?.[0]) : undefined;
@@ -132,45 +136,53 @@ export async function POST(req: NextRequest) {
 		},
 	  });
 
-	  // Per-item shipping with discount/threshold logic
+	  // Per-item shipping with discount logic (sum it up)
 	  const baseShip = row.shipping_cents ?? defaultShippingForCategory(row.category);
 	  const discountedShip = applyShippingDiscount(baseShip);
-	  const finalShip = unit_amount >= FREE_SHIP_THRESHOLD_CENTS ? 0 : discountedShip;
-	  shipping_total_cents += Math.max(0, finalShip);
+	  shipping_total_cents += Math.max(0, discountedShip);
+	} // <-- CLOSE THE LOOP ✅
+
+	// Order-level free-shipping threshold (apply after summing everything)
+	if (FREE_SHIP_THRESHOLD_CENTS > 0 && orderSubtotalCents >= FREE_SHIP_THRESHOLD_CENTS) {
+	  shipping_total_cents = 0;
 	}
 
+	// Do NOT add a "Shipping" line item when using shipping_options
+	// (the hosted Checkout will render shipping from shipping_options)
 	if (!line_items.length) {
 	  return NextResponse.json({ error: "All selected items are unavailable" }, { status: 409 });
 	}
 
-	// Add a separate "Shipping" line item (since you compute per-item shipping)
-	if (shipping_total_cents > 0) {
-	  line_items.push({
-		quantity: 1,
-		price_data: {
-		  currency: "usd",
-		  unit_amount: shipping_total_cents,
-		  product_data: { name: "Shipping" },
-		},
-	  });
-	}
-
 	const origin = getOrigin(req);
 
-	// Create the session	
+	const shippingLabel = shipping_total_cents === 0
+	  ? "Free shipping"
+	  : (SHIPPING_DISCOUNT_PERCENT > 0
+		  ? `Shipping (${SHIPPING_DISCOUNT_PERCENT}% off)`
+		  : "Shipping");
+
+	// Create the session
 	const session = await stripe.checkout.sessions.create({
 	  mode: "payment",
 	  line_items,
-	  success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`, // ✅
+	  success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
 	  cancel_url: `${origin}/cart?canceled=1`,
+	  shipping_options: [{
+		shipping_rate_data: {
+		  type: "fixed_amount",
+		  fixed_amount: { amount: shipping_total_cents, currency: "usd" },
+		  display_name: shippingLabel,
+		  delivery_estimate: {
+			minimum: { unit: "business_day", value: 3 },
+			maximum: { unit: "business_day", value: 7 },
+		  },
+		},
+	  }],
 	  shipping_address_collection: { allowed_countries: ALLOWED_COUNTRIES },
 	  allow_promotion_codes: true,
 	});
-	return NextResponse.json({ url: session.url }, { status: 200 });
 
 	return NextResponse.json({ url: session.url }, { status: 200 });
-
-
 
   } catch (e) {
     console.error("Checkout POST error:", e);
