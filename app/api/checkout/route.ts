@@ -1,4 +1,4 @@
-// app/api/checkout/route.ts
+// app/api/checkout/route.ts - updated
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sql } from "@vercel/postgres";
