@@ -145,13 +145,16 @@ export async function POST(req: NextRequest) {
 	  });
 	}
 
-	// Create the session
-	// app/api/checkout/route.ts
+	const origin =
+    process.env.NEXT_PUBLIC_BASE_URL
+    ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : new URL(req.url).origin);
+
+	// Create the session	
 	const session = await stripe.checkout.sessions.create({
 	  mode: "payment",
 	  line_items,
-	  success_url: `${BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`, // ✅
-	  cancel_url: `${BASE_URL}/cart?canceled=1`,
+	  success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`, // ✅
+	  cancel_url: `${origin}/cart?canceled=1`,
 	  shipping_address_collection: { allowed_countries: ALLOWED_COUNTRIES },
 	  allow_promotion_codes: true,
 	});

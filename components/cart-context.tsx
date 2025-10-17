@@ -4,20 +4,20 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 export type CartItem = {
-  id: string;          // DB id (text)
+  id: string;
   name: string;
-  price_cents: number; // cents (int)
+  price_cents: number;
   image?: string | null;
-  quantity: number;    // always 1 for one-of-a-kind
+  quantity: number;
 };
 
 type CartState = {
   items: CartItem[];
-  add: (item: Omit<CartItem, "quantity">) => void;
+  add: (item: Omit<CartItem, "quantity">, qty?: number) => void;
   remove: (id: string) => void;
-  setQty: (id: string, qty: number) => void; // no-op (kept for API compatibility)
+  setQty: (id: string, qty: number) => void;
   clear: () => void;
-  count: number;        // number of unique items
+  count: number;
   subtotalCents: number;
 };
 
@@ -25,10 +25,10 @@ const CartContext = createContext<CartState | null>(null);
 const STORAGE_KEY = "sbb-cart-v1";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  // Hydrate on first render
+  // 1) Initialize from localStorage synchronously (client only)
   const [items, setItems] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return [];
     try {
+      if (typeof window === "undefined") return [];
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : [];
     } catch {
@@ -36,33 +36,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   });
 
-  // Persist on change
+  // 2) Track when we've hydrated so we don't write [] over real data
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
+    // Ensure we read once more after mount (covers SSR edge cases)
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setItems(JSON.parse(raw));
+    } catch {}
+    setHydrated(true);
+  }, []);
+
+  // 3) Persist ONLY after hydration
+  useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch {}
-  }, [items]);
+  }, [items, hydrated]);
 
-  // One-of-a-kind: add only if not already present; force quantity = 1
-  const add: CartState["add"] = (item) => {
-    setItems((prev) =>
-      prev.some((p) => p.id === item.id) ? prev : [...prev, { ...item, quantity: 1 }]
-    );
+  // Unique-item behavior (1 of each)
+  const add: CartState["add"] = (item, qty = 1) => {
+    setItems(prev => (prev.some(p => p.id === item.id)
+      ? prev
+      : [...prev, { ...item, quantity: Math.max(1, qty) }]));
   };
-
-  const remove: CartState["remove"] = (id) =>
-    setItems((prev) => prev.filter((p) => p.id !== id));
-
-  // One-of-a-kind: ignore external qty changes (keep 1)
-  const setQty: CartState["setQty"] = (id, _qty) => {
-    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, quantity: 1 } : p)));
-  };
-
+  const remove: CartState["remove"] = (id) => setItems(prev => prev.filter(p => p.id !== id));
+  const setQty: CartState["setQty"] = (id, _qty) =>
+    setItems(prev => prev.map(p => (p.id === id ? { ...p, quantity: 1 } : p)));
   const clear = () => setItems([]);
 
-  // Count = number of unique items (not sum of quantities)
-  const count = useMemo(() => items.length, [items]);
-
+  const count = useMemo(() => items.reduce((n, i) => n + i.quantity, 0), [items]);
   const subtotalCents = useMemo(
     () => items.reduce((n, i) => n + i.price_cents * i.quantity, 0),
     [items]
