@@ -145,6 +145,7 @@ export default function CustomOrdersPage() {
                             <SelectItem value="outdoor">Outdoor Item</SelectItem>
                             <SelectItem value="furniture">Furniture</SelectItem>
                             <SelectItem value="barware">Bar Ware</SelectItem>
+                            <SelectItem value="montessori">Montessori Materials</SelectItem>
                             <SelectItem value="other">Other</SelectItem>
                           </SelectContent>
                         </Select>

@@ -395,7 +395,7 @@ export default function CategoryPage({ params }: { params: { category: string } 
                         <Link href="/custom-orders">Order Custom</Link>
                       </Button>
                       <Button asChild variant="outline" className="flex-1 bg-transparent">
-                        <Link href="/custom-orders">Request Quote</Link>
+                        <Link href="mailto:stonybendbarn@gmail.com?subject=Montessori Quote Request">Request Quote</Link>
                       </Button>
                     </div>
                   </div>
