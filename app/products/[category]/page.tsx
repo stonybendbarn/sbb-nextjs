@@ -316,30 +316,30 @@ const categoryData: Record<
       },
       {
         name: "Nuts & Bolts Board",
-        description: "Practical life activity board with various sized nuts and bolts for hand-twisting practice. Develops hand strength, coordination, and fine motor skills essential for daily life activities.",
+        description: "Practical life activity board with various sized nuts and bolts for hand-twisting practice. Develops hand strength, coordination, and fine motor skills essential for daily life activities. Made from solid maple, birch, or beech depending on availability.",
         size: "Custom sizing available",
-        price: "$35",
+        price: "Starting at $25",
         image: "/images/montessori/tee-balance-board-placeholder.jpeg",
       },
       {
         name: "Tee Balance Board",
-        description: "Balance and coordination board designed to help children develop gross motor skills and spatial awareness. Made from solid hardwood with smooth, safe edges.",
+        description: "Balance and coordination board designed to help children develop gross motor skills and spatial awareness. Made from solid maple, birch, or beech with smooth, safe edges.",
         size: "Custom dimensions",
-        price: "$15",
+        price: "Starting at $15",
         image: "/images/montessori/tee-balance-board-placeholder.jpeg",
       },
       {
         name: "Metal Inset Tray",
-        description: "Classic Montessori sensorial material featuring geometric metal insets. Perfect for developing fine motor skills and hand-eye coordination through tracing exercises.",
+        description: "Classic Montessori sensorial material featuring geometric metal insets. Perfect for developing fine motor skills and hand-eye coordination through tracing exercises. Made from solid maple, birch, or beech depending on availability.",
         size: "Custom dimensions",
-        price: "$30",
+        price: "Starting at $30",
         image: "/images/montessori/metal-inset-tray-placeholder.jpeg",
       },
       {
         name: "Lacing Boards",
-        description: "Wooden lacing boards with pre-drilled holes for developing fine motor skills and hand-eye coordination. Perfect for practicing threading and sewing skills.",
+        description: "Wooden lacing boards with pre-drilled holes for developing fine motor skills and hand-eye coordination. Perfect for practicing threading and sewing skills. Made from solid maple, birch, or beech depending on availability.",
         size: "Custom sizing available",
-        price: "$25",
+        price: "Starting at $25",
         image: "/images/montessori/lacing-boards-placeholder.jpeg",
       },
     ],
@@ -396,7 +396,7 @@ export default function CategoryPage({ params }: { params: { category: string } 
                   <p className="text-muted-foreground leading-relaxed mb-4 flex-1">{product.description}</p>
 				  <p className="text-foreground">Size: <span className="text-muted-foreground leading-relaxed mb-4 flex-1">{product.size}</span></p>
                   <div className="space-y-3">
-                    <p className="text-lg font-semibold text-primary">{product.price}</p>
+                    <p className="text-lg font-semibold text-primary">Starting Price: {product.price}</p>
                     <div className="flex gap-3">
                       <Button asChild className="flex-1">
                         <Link href="/custom-orders">Order Custom</Link>
