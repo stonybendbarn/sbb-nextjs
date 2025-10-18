@@ -321,6 +321,27 @@ const categoryData: Record<
         price: "$70",
         image: "/images/montessori/stackable-tables.jpeg",
       },
+      {
+        name: "Metal Inset Tray",
+        description: "Classic Montessori sensorial material featuring geometric metal insets. Perfect for developing fine motor skills and hand-eye coordination through tracing exercises.",
+        size: "Custom dimensions",
+        price: "$30",
+        image: "/images/montessori/metal-inset-tray-placeholder.jpeg",
+      },
+      {
+        name: "Nuts & Bolts Board",
+        description: "Practical life activity board with various sized nuts and bolts for screwing and unscrewing practice. Develops hand strength and coordination essential for daily life skills.",
+        size: "Custom sizing available",
+        price: "$35",
+        image: "/images/montessori/nuts-bolts-board-placeholder.jpeg",
+      },
+      {
+        name: "Tee Balance Board",
+        description: "Balance and coordination board designed to help children develop gross motor skills and spatial awareness. Made from solid hardwood with smooth, safe edges.",
+        size: "Custom dimensions",
+        price: "$15",
+        image: "/images/montessori/tee-balance-board-placeholder.jpeg",
+      },
     ],
   },
 }
