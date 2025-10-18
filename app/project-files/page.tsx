@@ -20,6 +20,19 @@ interface ProjectFile {
 
 const projectFiles: ProjectFile[] = [
   {
+    title: "Segmented Vase Plans",
+    description: "Complete plans for creating a beautiful segmented wooden vase with detailed measurements, wood selection guide, and step-by-step assembly instructions.",
+    filename: "segmented-vase.pdf",
+    sizeBytes: 2560000, // 2.5 MB
+    tags: ["vases", "intermediate", "segmented", "turning"],
+    images: [
+      "/images/project-files/seg-vase.jpeg",
+      "/images/project-files/segments.jpeg",
+      "/images/project-files/lathe-vase.jpeg",
+      "/images/project-files/lathe-vase-half.jpeg"
+    ]
+  },
+  {
     title: "Cutting Board Template",
     description: "Complete plans for a 12\" x 18\" end grain cutting board with detailed measurements and assembly instructions.",
     filename: "cutting-board-template.pdf",
