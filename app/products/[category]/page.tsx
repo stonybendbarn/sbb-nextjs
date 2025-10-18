@@ -326,7 +326,7 @@ const categoryData: Record<
         description: "Practical life activity board with various sized nuts and bolts for hand-twisting practice. Develops hand strength, coordination, and fine motor skills essential for daily life activities.",
         size: "Custom sizing available",
         price: "$35",
-        image: "/images/montessori/nuts-bolts-board-placeholder.jpeg",
+        image: "/images/montessori/tee-balance-board-placeholder.jpeg",
       },
       {
         name: "Tee Balance Board",
