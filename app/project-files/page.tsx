@@ -4,8 +4,10 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Download } from "lucide-react"
+import { Download, Images as ImagesIcon, ChevronLeft, ChevronRight } from "lucide-react"
 import { formatFileSize } from "@/lib/utils"
+import Image from "next/image"
+import { useState, useCallback, KeyboardEvent } from "react"
 
 interface ProjectFile {
   title: string
@@ -13,6 +15,7 @@ interface ProjectFile {
   filename: string
   sizeBytes?: number
   tags?: string[]
+  images?: string[]
 }
 
 const projectFiles: ProjectFile[] = [
@@ -21,9 +24,107 @@ const projectFiles: ProjectFile[] = [
     description: "Complete plans for creating a beautiful segmented wooden vase with detailed measurements, wood selection guide, and step-by-step assembly instructions.",
     filename: "segmented-vase.pdf",
     sizeBytes: 1536000, // 1.5 MB (1500 KB)
-    tags: ["intermediate", "segmented turning"]
+    tags: ["intermediate", "segmented turning"],
+    images: [
+      "/images/project-files/seg-vase.jpeg",
+      "/images/project-files/segments.jpeg",
+      "/images/project-files/lathe-vase.jpeg",
+      "/images/project-files/lathe-vase-half.jpeg"
+    ]
   }
 ]
+
+function ProjectImageCarousel({ images, alt }: { images: string[]; alt: string }) {
+  const safeImages = Array.isArray(images) ? images.filter(Boolean) : [];
+  const hasMultiple = safeImages.length > 1;
+  const [idx, setIdx] = useState(0);
+
+  // wrap around
+  const next = useCallback(() => {
+    setIdx((i) => (i + 1) % (safeImages.length || 1));
+  }, [safeImages.length]);
+
+  const prev = useCallback(() => {
+    setIdx((i) => (i - 1 + (safeImages.length || 1)) % (safeImages.length || 1));
+  }, [safeImages.length]);
+
+  // keyboard navigation when the image is focused
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!hasMultiple) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); next(); }
+    if (e.key === "ArrowLeft")  { e.preventDefault(); prev(); }
+  };
+
+  return (
+    <div
+      className="relative aspect-[4/3] overflow-hidden bg-muted rounded-md"
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+    >
+      {safeImages.length ? (
+        <Image
+          key={safeImages[idx]}               // force re-render when image changes
+          src={safeImages[idx]}
+          alt={alt}
+          fill
+          className="object-contain select-none"
+          sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+          priority={false}
+        />
+      ) : (
+        <div className="absolute inset-0 grid place-items-center text-muted-foreground">
+          <span className="px-3 text-sm">Image coming soon</span>
+        </div>
+      )}
+
+      {hasMultiple && (
+        <>
+          {/* counter badge */}
+          <div className="pointer-events-none absolute top-2 left-2 inline-flex items-center gap-1 rounded-md bg-black/45 text-white px-1.5 py-0.5 text-[10px]">
+            <ImagesIcon className="h-3.5 w-3.5" /> {idx + 1}/{safeImages.length}
+          </div>
+
+          {/* prev/next buttons */}
+          <button
+            type="button"
+            aria-label="Previous image"
+            onClick={prev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center
+                       h-11 w-11 rounded-full bg-black/45 text-white
+                       hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-white/70
+                       shadow-sm backdrop-blur-[2px]"
+          >
+            <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            aria-label="Next image"
+            onClick={next}
+            className="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center
+                       h-11 w-11 rounded-full bg-black/45 text-white
+                       hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-white/70
+                       shadow-sm backdrop-blur-[2px]"
+          >
+            <ChevronRight className="h-6 w-6" aria-hidden="true" />
+          </button>
+
+          {/* dots */}
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+            {safeImages.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Go to image ${i + 1}`}
+                onClick={() => setIdx(i)}
+                className={`h-1.5 w-1.5 rounded-full ${i === idx ? "bg-white" : "bg-white/50"}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function ProjectFilesPage() {
   return (
@@ -64,7 +165,12 @@ export default function ProjectFilesPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
               {projectFiles.map((file, index) => (
-                <Card key={index} className="flex flex-col">
+                <Card key={index} className="flex flex-col overflow-hidden">
+                  {/* Image Carousel */}
+                  <div className="relative">
+                    <ProjectImageCarousel images={file.images || []} alt={file.title} />
+                  </div>
+                  
                   <CardHeader>
                     <CardTitle className="font-serif text-xl font-bold text-foreground">
                       {file.title}
