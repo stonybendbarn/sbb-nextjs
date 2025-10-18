@@ -304,9 +304,24 @@ const categoryData: Record<
     ],
   },
   montessori: {
-    name: "Montessori",
-    description: "Hand-crafted Montessori materials designed to support child development and learning.",
-    products: [],
+    name: "Montessori Materials",
+    description: "Custom-crafted Montessori materials designed to support child development and learning. Each piece is made to order with attention to educational principles and child safety.",
+    products: [
+      {
+        name: "Montessori Learning Boards",
+        description: "Handcrafted wooden learning boards designed for Montessori education. Each board is custom-made with child-safe finishes and educational elements to support hands-on learning.",
+        size: "Custom dimensions",
+        price: "Starting at $65",
+        image: "/images/montessori/boards.jpeg",
+      },
+      {
+        name: "Stackable Learning Tables",
+        description: "Versatile stackable tables perfect for Montessori classroom or home learning environments. Made from solid hardwood with smooth, child-safe edges and finishes.",
+        size: "Custom sizing available",
+        price: "Starting at $120",
+        image: "/images/montessori/stackable-tables.jpeg",
+      },
+    ],
   },
 }
 
@@ -360,13 +375,13 @@ export default function CategoryPage({ params }: { params: { category: string } 
                   <p className="text-muted-foreground leading-relaxed mb-4 flex-1">{product.description}</p>
 				  <p className="text-foreground">Size: <span className="text-muted-foreground leading-relaxed mb-4 flex-1">{product.size}</span></p>
                   <div className="space-y-3">
-                    <p className="text-lg font-semibold text-primary">Starting Price: {product.price}</p>
+                    <p className="text-lg font-semibold text-primary">{product.price}</p>
                     <div className="flex gap-3">
                       <Button asChild className="flex-1">
-                        <Link href="/inventory">Check Availability</Link>
+                        <Link href="/custom-orders">Order Custom</Link>
                       </Button>
                       <Button asChild variant="outline" className="flex-1 bg-transparent">
-                        <Link href="/custom-orders">Customize</Link>
+                        <Link href="/custom-orders">Request Quote</Link>
                       </Button>
                     </div>
                   </div>
@@ -380,12 +395,19 @@ export default function CategoryPage({ params }: { params: { category: string } 
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6 text-balance">Want something custom?</h2>
+          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6 text-balance">
+            {params.category === 'montessori' ? 'Ready to Order Montessori Materials?' : 'Want something custom?'}
+          </h2>
           <p className="text-lg text-primary-foreground/90 mb-8 max-w-2xl mx-auto leading-relaxed text-pretty">
-            We can create a unique piece tailored to your exact specifications.
+            {params.category === 'montessori' 
+              ? 'Each Montessori material is custom-crafted to order with attention to educational principles and child safety. Lead times vary by complexity.'
+              : 'We can create a unique piece tailored to your exact specifications.'
+            }
           </p>
           <Button asChild size="lg" variant="secondary">
-            <Link href="/custom-orders">Request Custom Order</Link>
+            <Link href="/custom-orders">
+              {params.category === 'montessori' ? 'Start Custom Order' : 'Request Custom Order'}
+            </Link>
           </Button>
         </div>
       </section>
