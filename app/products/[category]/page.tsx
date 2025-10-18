@@ -335,6 +335,13 @@ const categoryData: Record<
         price: "$15",
         image: "/images/montessori/tee-balance-board-placeholder.jpeg",
       },
+      {
+        name: "Lacing Boards",
+        description: "Wooden lacing boards with pre-drilled holes for developing fine motor skills and hand-eye coordination. Perfect for practicing threading and sewing skills.",
+        size: "Custom sizing available",
+        price: "$25",
+        image: "/images/montessori/lacing-boards-placeholder.jpeg",
+      },
     ],
   },
 }
