@@ -1,15 +1,13 @@
-import type { Metadata } from "next"
+"use client"
+
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Download } from "lucide-react"
+import { Download, Images as ImagesIcon, ChevronLeft, ChevronRight } from "lucide-react"
 import { formatFileSize } from "@/lib/utils"
-
-export const metadata: Metadata = {
-  title: "Project Files – Stony Bend Barn",
-  description: "Free downloadable plans for select woodworking projects. Personal use only.",
-}
+import Image from "next/image"
+import { useState, useCallback, KeyboardEvent } from "react"
 
 interface ProjectFile {
   title: string
@@ -17,6 +15,7 @@ interface ProjectFile {
   filename: string
   sizeBytes?: number
   tags?: string[]
+  images?: string[]
 }
 
 const projectFiles: ProjectFile[] = [
@@ -25,23 +24,130 @@ const projectFiles: ProjectFile[] = [
     description: "Complete plans for a 12\" x 18\" end grain cutting board with detailed measurements and assembly instructions.",
     filename: "cutting-board-template.pdf",
     sizeBytes: 2048576, // 2 MB
-    tags: ["cutting-boards", "beginner", "templates"]
+    tags: ["cutting-boards", "beginner", "templates"],
+    images: [
+      "/images/project-files/cutting-board-template-1.jpeg",
+      "/images/project-files/cutting-board-template-2.jpeg",
+      "/images/project-files/cutting-board-template-3.jpeg"
+    ]
   },
   {
     title: "Coaster Set Plans",
     description: "Step-by-step guide to create a set of 4 wooden coasters with matching holder box.",
     filename: "coaster-set-plans.pdf",
     sizeBytes: 1536000, // 1.5 MB
-    tags: ["coasters", "beginner", "gift-ideas"]
+    tags: ["coasters", "beginner", "gift-ideas"],
+    images: [
+      "/images/project-files/coaster-set-1.jpeg",
+      "/images/project-files/coaster-set-2.jpeg"
+    ]
   },
   {
     title: "Chess Board Blueprint",
     description: "Detailed blueprints for a traditional 18\" x 18\" chess board with inlay techniques.",
     filename: "chess-board-blueprint.pdf",
     sizeBytes: 3072000, // 3 MB
-    tags: ["game-boards", "intermediate", "inlay"]
+    tags: ["game-boards", "intermediate", "inlay"],
+    images: [
+      "/images/project-files/chess-board-1.jpeg",
+      "/images/project-files/chess-board-2.jpeg",
+      "/images/project-files/chess-board-3.jpeg",
+      "/images/project-files/chess-board-4.jpeg"
+    ]
   }
 ]
+
+function ProjectImageCarousel({ images, alt }: { images: string[]; alt: string }) {
+  const safeImages = Array.isArray(images) ? images.filter(Boolean) : [];
+  const hasMultiple = safeImages.length > 1;
+  const [idx, setIdx] = useState(0);
+
+  // wrap around
+  const next = useCallback(() => {
+    setIdx((i) => (i + 1) % (safeImages.length || 1));
+  }, [safeImages.length]);
+
+  const prev = useCallback(() => {
+    setIdx((i) => (i - 1 + (safeImages.length || 1)) % (safeImages.length || 1));
+  }, [safeImages.length]);
+
+  // keyboard navigation when the image is focused
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!hasMultiple) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); next(); }
+    if (e.key === "ArrowLeft")  { e.preventDefault(); prev(); }
+  };
+
+  return (
+    <div
+      className="relative aspect-[4/3] overflow-hidden bg-muted rounded-md"
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+    >
+      {safeImages.length ? (
+        <Image
+          key={safeImages[idx]}               // force re-render when image changes
+          src={safeImages[idx]}
+          alt={alt}
+          fill
+          className="object-contain select-none"
+          sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+          priority={false}
+        />
+      ) : (
+        <div className="absolute inset-0 grid place-items-center text-muted-foreground">
+          <span className="px-3 text-sm">Image coming soon</span>
+        </div>
+      )}
+
+      {hasMultiple && (
+        <>
+          {/* counter badge */}
+          <div className="pointer-events-none absolute top-2 left-2 inline-flex items-center gap-1 rounded-md bg-black/45 text-white px-1.5 py-0.5 text-[10px]">
+            <ImagesIcon className="h-3.5 w-3.5" /> {idx + 1}/{safeImages.length}
+          </div>
+
+          {/* prev/next buttons */}
+          <button
+            type="button"
+            aria-label="Previous image"
+            onClick={prev}
+            className="absolute left-3 top-1/2 -translate-y-1/2 grid place-items-center
+                       h-11 w-11 rounded-full bg-black/45 text-white
+                       hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-white/70
+                       shadow-sm backdrop-blur-[2px]"
+          >
+            <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            aria-label="Next image"
+            onClick={next}
+            className="absolute right-3 top-1/2 -translate-y-1/2 grid place-items-center
+                       h-11 w-11 rounded-full bg-black/45 text-white
+                       hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-white/70
+                       shadow-sm backdrop-blur-[2px]"
+          >
+            <ChevronRight className="h-6 w-6" aria-hidden="true" />
+          </button>
+
+          {/* dots */}
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+            {safeImages.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                aria-label={`Go to image ${i + 1}`}
+                onClick={() => setIdx(i)}
+                className={`h-1.5 w-1.5 rounded-full ${i === idx ? "bg-white" : "bg-white/50"}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function ProjectFilesPage() {
   return (
@@ -82,7 +188,12 @@ export default function ProjectFilesPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
               {projectFiles.map((file, index) => (
-                <Card key={index} className="flex flex-col">
+                <Card key={index} className="flex flex-col overflow-hidden">
+                  {/* Image Carousel */}
+                  <div className="relative">
+                    <ProjectImageCarousel images={file.images || []} alt={file.title} />
+                  </div>
+                  
                   <CardHeader>
                     <CardTitle className="font-serif text-xl font-bold text-foreground">
                       {file.title}
