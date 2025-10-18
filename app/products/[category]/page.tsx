@@ -303,6 +303,11 @@ const categoryData: Record<
       },
     ],
   },
+  montessori: {
+    name: "Montessori",
+    description: "Hand-crafted Montessori materials designed to support child development and learning.",
+    products: [],
+  },
 }
 
 export default function CategoryPage({ params }: { params: { category: string } }) {

@@ -14,6 +14,8 @@ export function Navigation() {
     { href: "/products", label: "Products" },
     { href: "/inventory", label: "Inventory" },
     //{ href: "/gallery", label: "Gallery" },
+    { href: "/products/montessori", label: "Montessori" },
+    { href: "/project-files", label: "Project Files" },
     { href: "/custom-orders", label: "Custom Orders" },
     { href: "/events", label: "Events" },
   ]
