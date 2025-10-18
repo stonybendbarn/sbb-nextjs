@@ -323,7 +323,7 @@ const categoryData: Record<
       },
       {
         name: "Nuts & Bolts Board",
-        description: "Practical life activity board with various sized nuts and bolts for screwing and unscrewing practice. Develops hand strength and coordination essential for daily life skills.",
+        description: "Practical life activity board with various sized nuts and bolts for hand-twisting practice. Develops hand strength, coordination, and fine motor skills essential for daily life activities.",
         size: "Custom sizing available",
         price: "$35",
         image: "/images/montessori/nuts-bolts-board-placeholder.jpeg",
