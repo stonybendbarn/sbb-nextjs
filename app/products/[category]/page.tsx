@@ -308,13 +308,6 @@ const categoryData: Record<
     description: "Custom-crafted Montessori materials designed to support child development and learning. Each piece is made to order with attention to educational principles and child safety.",
     products: [
       {
-        name: "Montessori Learning Boards",
-        description: "Handcrafted wooden learning boards designed for Montessori education. Each board is custom-made with child-safe finishes and educational elements to support hands-on learning.",
-        size: "Custom dimensions",
-        price: "Starting at $15",
-        image: "/images/montessori/boards.jpeg",
-      },
-      {
         name: "Stackable Learning Tables",
         description: "Versatile stackable tables perfect for Montessori classroom or home learning environments. Made from 3/4\" maple prefinished plywood with smooth, child-safe edges.",
         size: "Custom sizing available",
