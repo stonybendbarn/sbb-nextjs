@@ -303,6 +303,47 @@ const categoryData: Record<
       },
     ],
   },
+  montessori: {
+    name: "Montessori Materials",
+    description: "Custom-crafted Montessori materials designed to support child development and learning. Each piece is made to order with attention to educational principles and child safety.",
+    products: [
+      {
+        name: "Stackable Learning Tables",
+        description: "Versatile stackable tables perfect for Montessori classroom or home learning environments. Made from 3/4\" maple prefinished plywood with smooth, child-safe edges.",
+        size: "Custom sizing available",
+        price: "$70",
+        image: "/images/montessori/stackable-tables.jpeg",
+      },
+      {
+        name: "Nuts & Bolts Board",
+        description: "Practical life activity board with various sized nuts and bolts for hand-twisting practice. Develops hand strength, coordination, and fine motor skills essential for daily life activities. Made from solid maple, birch, or beech depending on availability.",
+        size: "Custom sizing available",
+        price: "Starting at $25",
+        image: "/images/montessori/tee-balance-board-placeholder.jpeg",
+      },
+      {
+        name: "Tee Balance Board",
+        description: "Balance and coordination board designed to help children develop gross motor skills and spatial awareness. Made from solid maple, birch, or beech with smooth, safe edges.",
+        size: "Custom dimensions",
+        price: "Starting at $15",
+        image: "/images/montessori/tee-balance-board-placeholder.jpeg",
+      },
+      {
+        name: "Metal Inset Tray",
+        description: "Classic Montessori sensorial material featuring geometric metal insets. Perfect for developing fine motor skills and hand-eye coordination through tracing exercises. Made from solid maple, birch, or beech depending on availability.",
+        size: "Custom dimensions",
+        price: "Starting at $30",
+        image: "/images/montessori/metal-inset-tray-placeholder.jpeg",
+      },
+      {
+        name: "Lacing Boards",
+        description: "Wooden lacing boards with pre-drilled holes for developing fine motor skills and hand-eye coordination. Perfect for practicing threading and sewing skills. Made from solid maple, birch, or beech depending on availability.",
+        size: "Custom sizing available",
+        price: "Starting at $25",
+        image: "/images/montessori/lacing-boards-placeholder.jpeg",
+      },
+    ],
+  },
 }
 
 export default function CategoryPage({ params }: { params: { category: string } }) {
@@ -358,10 +399,10 @@ export default function CategoryPage({ params }: { params: { category: string } 
                     <p className="text-lg font-semibold text-primary">Starting Price: {product.price}</p>
                     <div className="flex gap-3">
                       <Button asChild className="flex-1">
-                        <Link href="/inventory">Check Availability</Link>
+                        <Link href="/custom-orders">Order Custom</Link>
                       </Button>
                       <Button asChild variant="outline" className="flex-1 bg-transparent">
-                        <Link href="/custom-orders">Customize</Link>
+                        <Link href="mailto:stonybendbarn@gmail.com?subject=Montessori Quote Request">Request Quote</Link>
                       </Button>
                     </div>
                   </div>
@@ -375,12 +416,19 @@ export default function CategoryPage({ params }: { params: { category: string } 
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-primary text-primary-foreground">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6 text-balance">Want something custom?</h2>
+          <h2 className="font-serif text-3xl md:text-4xl font-bold mb-6 text-balance">
+            {params.category === 'montessori' ? 'Ready to Order Montessori Materials?' : 'Want something custom?'}
+          </h2>
           <p className="text-lg text-primary-foreground/90 mb-8 max-w-2xl mx-auto leading-relaxed text-pretty">
-            We can create a unique piece tailored to your exact specifications.
+            {params.category === 'montessori' 
+              ? 'Each Montessori material is custom-crafted to order with attention to educational principles and child safety. Lead times vary by complexity.'
+              : 'We can create a unique piece tailored to your exact specifications.'
+            }
           </p>
           <Button asChild size="lg" variant="secondary">
-            <Link href="/custom-orders">Request Custom Order</Link>
+            <Link href="/custom-orders">
+              {params.category === 'montessori' ? 'Start Custom Order' : 'Request Custom Order'}
+            </Link>
           </Button>
         </div>
       </section>

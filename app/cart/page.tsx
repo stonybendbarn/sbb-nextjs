@@ -9,6 +9,8 @@ import Image from "next/image";
 import { useCart } from "@/components/cart-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
 
 function CartContent() {
   const { items, remove, setQty, subtotalCents } = useCart();
@@ -110,8 +112,14 @@ function CartContent() {
 
 export default function CartPage() {
   return (
-    <Suspense fallback={<main className="mx-auto max-w-4xl p-6"><h1 className="text-2xl font-semibold">Your Cart</h1><p>Loading…</p></main>}>
-      <CartContent />
-    </Suspense>
+    <div className="min-h-screen">
+      <Navigation />
+      <div className="pt-32 md:pt-40">
+        <Suspense fallback={<main className="mx-auto max-w-4xl p-6"><h1 className="text-2xl font-semibold">Your Cart</h1><p>Loading…</p></main>}>
+          <CartContent />
+        </Suspense>
+      </div>
+      <Footer />
+    </div>
   );
 }

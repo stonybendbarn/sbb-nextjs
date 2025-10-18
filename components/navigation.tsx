@@ -12,8 +12,10 @@ export function Navigation() {
 
   const navLinks = [
     { href: "/products", label: "Products" },
+    { href: "/products/montessori", label: "Montessori" },
     { href: "/inventory", label: "Inventory" },
     //{ href: "/gallery", label: "Gallery" },
+    { href: "/project-files", label: "Project Files" },
     { href: "/custom-orders", label: "Custom Orders" },
     { href: "/events", label: "Events" },
   ]

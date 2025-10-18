@@ -47,6 +47,14 @@ export function Footer() {
               */}
               <li>
                 <Link
+                  href="/project-files"
+                  className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                >
+                  Project Files
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/custom-orders"
                   className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors"
                 >
@@ -83,6 +91,11 @@ export function Footer() {
 			  <li>
                 <Link href="/products/bar-ware" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                   Bar Ware
+                </Link>
+              </li>
+              <li>
+                <Link href="/products/montessori" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Montessori
                 </Link>
               </li>
             </ul>
