@@ -1,7 +1,5 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export interface OrderItem {
   id: string;
   name: string;
@@ -43,6 +41,7 @@ export async function sendOrderConfirmationEmail(orderDetails: OrderDetails) {
   ].filter(Boolean).join('\n');
 
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
       from: process.env.FROM_EMAIL!,
       to: customerEmail,
@@ -123,6 +122,7 @@ export async function sendOrderShippedEmail(orderDetails: OrderDetails, tracking
   const { orderId, customerEmail, customerName } = orderDetails;
   
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
       from: process.env.FROM_EMAIL!,
       to: customerEmail,
@@ -181,6 +181,7 @@ export async function sendAdminOrderNotification(orderDetails: OrderDetails) {
   ].filter(Boolean).join('\n');
 
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
       from: process.env.FROM_EMAIL!,
       to: process.env.ORDER_EMAIL!,
