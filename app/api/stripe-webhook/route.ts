@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sql } from "@vercel/postgres";
+import { sendOrderConfirmationEmail, sendAdminOrderNotification, OrderDetails, OrderItem } from "@/lib/email";
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY!;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -50,22 +51,137 @@ export async function POST(req: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const productId =
-          session.client_reference_id || session.metadata?.product_id;
-
-        if (!productId) {
-          console.warn("⚠️ No productId in checkout.session.completed event");
+        
+        // Get the line items from the session to find all purchased products
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+        
+        if (!lineItems.data.length) {
+          console.warn("⚠️ No line items found in checkout session");
           break;
         }
 
-        const updated = await markProductSold(productId);
-        if (updated) {
-          console.log(`✅ Product ${productId} marked as Sold.`);
-        } else {
-          console.log(
-            `ℹ️ Product ${productId} was already Sold or not found. Skipping.`
-          );
+        // Extract product IDs and build order details
+        const productIds: string[] = [];
+        const orderItems: OrderItem[] = [];
+        let subtotal = 0;
+
+        for (const item of lineItems.data) {
+          if (item.price?.product && typeof item.price.product === 'string') {
+            // Get the product details to find our internal product ID
+            const stripeProduct = await stripe.products.retrieve(item.price.product);
+            const internalProductId = stripeProduct.metadata?.internal_product_id;
+            
+            if (internalProductId) {
+              productIds.push(internalProductId);
+              
+              // Get product details from our database
+              const { rows } = await sql`
+                SELECT id, name, price_cents, sale_price_cents
+                FROM products
+                WHERE id = ${internalProductId}
+              `;
+              
+              if (rows.length > 0) {
+                const product = rows[0];
+                const effectivePrice = product.sale_price_cents ?? product.price_cents;
+                const quantity = item.quantity || 1;
+                
+                orderItems.push({
+                  id: internalProductId,
+                  name: product.name,
+                  price_cents: effectivePrice,
+                  quantity: quantity
+                });
+                
+                subtotal += effectivePrice * quantity;
+              }
+            }
+          }
         }
+
+        if (productIds.length === 0) {
+          console.warn("⚠️ No internal product IDs found in line items");
+          break;
+        }
+
+        // Mark all products as sold
+        for (const productId of productIds) {
+          const updated = await markProductSold(productId);
+          if (updated) {
+            console.log(`✅ Product ${productId} marked as Sold.`);
+          } else {
+            console.log(
+              `ℹ️ Product ${productId} was already Sold or not found. Skipping.`
+            );
+          }
+        }
+
+        // Store order details and send emails if we have customer information
+        if (session.customer_email && session.shipping_details?.address) {
+          const shipping = session.amount_total! - session.amount_subtotal!;
+          const total = session.amount_total!;
+          
+          const orderDetails: OrderDetails = {
+            orderId: session.id,
+            customerEmail: session.customer_email,
+            customerName: session.shipping_details.name || 'Customer',
+            items: orderItems,
+            subtotal: session.amount_subtotal!,
+            shipping: shipping,
+            total: total,
+            shippingAddress: {
+              line1: session.shipping_details.address.line1,
+              line2: session.shipping_details.address.line2 || undefined,
+              city: session.shipping_details.address.city,
+              state: session.shipping_details.address.state,
+              postal_code: session.shipping_details.address.postal_code,
+              country: session.shipping_details.address.country,
+            }
+          };
+
+          try {
+            // Store order in database
+            await sql`
+              INSERT INTO orders (
+                id, customer_email, customer_name, subtotal_cents, 
+                shipping_cents, total_cents, shipping_address, items, status
+              ) VALUES (
+                ${session.id},
+                ${session.customer_email},
+                ${session.shipping_details.name || 'Customer'},
+                ${session.amount_subtotal!},
+                ${shipping},
+                ${total},
+                ${JSON.stringify(orderDetails.shippingAddress)},
+                ${JSON.stringify(orderItems)},
+                'pending'
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                customer_email = EXCLUDED.customer_email,
+                customer_name = EXCLUDED.customer_name,
+                subtotal_cents = EXCLUDED.subtotal_cents,
+                shipping_cents = EXCLUDED.shipping_cents,
+                total_cents = EXCLUDED.total_cents,
+                shipping_address = EXCLUDED.shipping_address,
+                items = EXCLUDED.items,
+                updated_at = NOW()
+            `;
+
+            // Send order confirmation to customer
+            await sendOrderConfirmationEmail(orderDetails);
+            
+            // Send notification to admin
+            await sendAdminOrderNotification(orderDetails);
+            
+            console.log(`✅ Order stored and confirmation emails sent for order ${session.id}`);
+          } catch (emailError) {
+            console.error("❌ Failed to send order emails:", emailError);
+            // Don't fail the webhook if email fails
+          }
+        } else {
+          console.warn("⚠️ Missing customer email or shipping details, skipping order storage and email notifications");
+        }
+
         break;
       }
 

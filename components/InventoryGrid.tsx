@@ -43,6 +43,15 @@ const SALE_THEME = "amber";
 const fmt = (cents: number | null) =>
   cents == null ? "" : (cents / 100).toLocaleString(undefined, { style: "currency", currency: "USD" });
 
+// Get shipping discount percentage from environment
+const SHIPPING_DISCOUNT_PERCENT = Number(process.env.NEXT_PUBLIC_SHIPPING_DISCOUNT ?? 0);
+
+function applyShippingDiscount(base: number): number {
+  if (!SHIPPING_DISCOUNT_PERCENT) return base;
+  const discounted = Math.round(base * (1 - SHIPPING_DISCOUNT_PERCENT / 100));
+  return Math.max(0, discounted);
+}
+
 function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const safeImages = Array.isArray(images) ? images.filter(Boolean) : [];
   const hasMultiple = safeImages.length > 1;
@@ -193,6 +202,19 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
                           <span className="text-2xl font-bold text-primary">{fmt(item.price_cents)}</span>
                         )}
                       </div>
+                      {item.shipping_cents && (
+                        <div className="flex justify-between items-center pt-1">
+                          <span className="text-sm text-muted-foreground">Shipping:</span>
+                          {SHIPPING_DISCOUNT_PERCENT > 0 ? (
+                            <span className="text-sm font-medium">
+                              <span className="line-through text-muted-foreground mr-2">{fmt(item.shipping_cents)}</span>
+                              <span className="text-green-600">{fmt(applyShippingDiscount(item.shipping_cents))}</span>
+                            </span>
+                          ) : (
+                            <span className="text-sm font-medium">{fmt(item.shipping_cents)}</span>
+                          )}
+                        </div>
+                      )}
                     </CardContent>
 
                     <CardFooter className="p-3 pt-0 gap-2 flex-col sm:flex-row">

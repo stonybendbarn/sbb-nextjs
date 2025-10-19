@@ -132,6 +132,9 @@ export async function POST(req: NextRequest) {
 		  product_data: {
 			name: row.name,
 			images: imageUrl ? [imageUrl] : undefined,
+			metadata: {
+			  internal_product_id: String(row.id),
+			},
 		  },
 		},
 	  });
