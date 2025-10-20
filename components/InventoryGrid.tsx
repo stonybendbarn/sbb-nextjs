@@ -43,6 +43,8 @@ const SALE_THEME = "amber";
 const fmt = (cents: number | null) =>
   cents == null ? "" : (cents / 100).toLocaleString(undefined, { style: "currency", currency: "USD" });
 
+// (Removed shipping display/discount helpers per request)
+
 function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const safeImages = Array.isArray(images) ? images.filter(Boolean) : [];
   const hasMultiple = safeImages.length > 1;
@@ -193,6 +195,7 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
                           <span className="text-2xl font-bold text-primary">{fmt(item.price_cents)}</span>
                         )}
                       </div>
+                      {/* Shipping line intentionally omitted */}
                     </CardContent>
 
                     <CardFooter className="p-3 pt-0 gap-2 flex-col sm:flex-row">
