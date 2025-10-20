@@ -10,7 +10,8 @@ export async function GET() {
       SELECT 
         id, customer_email, customer_name, subtotal_cents, 
         shipping_cents, total_cents, shipping_address, items, 
-        status, tracking_number, created_at
+        status, tracking_number, email_sent_at, email_status, 
+        email_tracking_number, created_at
       FROM orders
       ORDER BY created_at DESC
     `;

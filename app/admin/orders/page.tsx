@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 
@@ -20,6 +21,9 @@ interface Order {
   items: any[];
   status: string;
   tracking_number?: string;
+  email_sent_at?: string;
+  email_status?: string;
+  email_tracking_number?: string;
   created_at: string;
 }
 
@@ -28,6 +32,9 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [trackingNumbers, setTrackingNumbers] = useState<Record<string, string>>({});
   const [sending, setSending] = useState<Record<string, boolean>>({});
+  const [selectedOrders, setSelectedOrders] = useState<Set<string>>(new Set());
+  const [batchSending, setBatchSending] = useState(false);
+  const [batchTrackingNumber, setBatchTrackingNumber] = useState('');
 
   useEffect(() => {
     fetchOrders();
@@ -70,6 +77,7 @@ export default function AdminOrdersPage() {
       if (response.ok) {
         alert('Shipping notification sent successfully!');
         setTrackingNumbers(prev => ({ ...prev, [orderId]: '' }));
+        fetchOrders(); // Refresh to show updated email status
       } else {
         const error = await response.json();
         alert(`Failed to send notification: ${error.error}`);
@@ -79,6 +87,64 @@ export default function AdminOrdersPage() {
       alert('Failed to send shipping notification');
     } finally {
       setSending(prev => ({ ...prev, [orderId]: false }));
+    }
+  };
+
+  // Batch selection functions
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllOrders = () => {
+    const pendingOrders = orders.filter(order => order.status === 'pending' && !order.email_sent_at);
+    setSelectedOrders(new Set(pendingOrders.map(order => order.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedOrders(new Set());
+  };
+
+  const sendBatchShippingNotification = async () => {
+    if (selectedOrders.size === 0) {
+      alert('Please select at least one order');
+      return;
+    }
+
+    setBatchSending(true);
+    
+    try {
+      const response = await fetch('/api/send-batch-shipping-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          orderIds: Array.from(selectedOrders), 
+          trackingNumber: batchTrackingNumber 
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(`Batch shipping notification sent successfully! Processed ${result.results?.length || 0} customer(s).`);
+        setBatchTrackingNumber('');
+        setSelectedOrders(new Set());
+        fetchOrders(); // Refresh to show updated email status
+      } else {
+        alert(`Failed to send batch notification: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error sending batch shipping notification:', error);
+      alert('Failed to send batch shipping notification');
+    } finally {
+      setBatchSending(false);
     }
   };
 
@@ -140,6 +206,60 @@ export default function AdminOrdersPage() {
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto space-y-6">
+            {/* Batch Controls */}
+            {orders.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Batch Operations</CardTitle>
+                  <CardDescription>
+                    Select multiple orders to send consolidated shipping notifications
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex flex-wrap gap-4 items-center">
+                    <Button 
+                      onClick={selectAllOrders}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Select All Pending
+                    </Button>
+                    <Button 
+                      onClick={clearSelection}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Clear Selection
+                    </Button>
+                    <span className="text-sm text-muted-foreground">
+                      {selectedOrders.size} order{selectedOrders.size !== 1 ? 's' : ''} selected
+                    </span>
+                  </div>
+                  
+                  {selectedOrders.size > 0 && (
+                    <div className="flex gap-4 items-end">
+                      <div className="flex-1">
+                        <Label htmlFor="batch-tracking">Tracking Number (Optional)</Label>
+                        <Input
+                          id="batch-tracking"
+                          placeholder="Enter tracking number"
+                          value={batchTrackingNumber}
+                          onChange={(e) => setBatchTrackingNumber(e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        onClick={sendBatchShippingNotification}
+                        disabled={batchSending}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {batchSending ? 'Sending...' : 'Send Consolidated Email'}
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {orders.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
@@ -148,22 +268,45 @@ export default function AdminOrdersPage() {
               </Card>
             ) : (
               orders.map((order) => (
-                <Card key={order.id}>
+                <Card key={order.id} className={selectedOrders.has(order.id) ? 'ring-2 ring-blue-500' : ''}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-lg">Order {order.id}</CardTitle>
-                        <CardDescription>
-                          {order.customer_name} ({order.customer_email})
-                        </CardDescription>
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={selectedOrders.has(order.id)}
+                          onCheckedChange={() => toggleOrderSelection(order.id)}
+                          disabled={order.email_sent_at !== null}
+                        />
+                        <div>
+                          <CardTitle className="text-lg">Order {order.id}</CardTitle>
+                          <CardDescription>
+                            {order.customer_name} ({order.customer_email})
+                          </CardDescription>
+                          <div className="flex gap-2 mt-2">
+                            <Badge variant={order.status === 'shipped' ? 'default' : 'secondary'}>
+                              {order.status}
+                            </Badge>
+                            {order.email_sent_at ? (
+                              <Badge variant="outline" className="text-green-600 border-green-600">
+                                Email Sent
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-orange-600 border-orange-600">
+                                No Email
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       <div className="text-right">
-                        <Badge variant={order.status === 'shipped' ? 'default' : 'secondary'}>
-                          {order.status}
-                        </Badge>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-muted-foreground">
                           {formatDate(order.created_at)}
                         </p>
+                        {order.email_sent_at && (
+                          <p className="text-xs text-muted-foreground">
+                            Email: {formatDate(order.email_sent_at)}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
