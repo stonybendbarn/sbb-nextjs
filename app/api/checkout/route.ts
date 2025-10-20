@@ -170,17 +170,29 @@ export async function POST(req: NextRequest) {
 	  line_items,
 	  success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
 	  cancel_url: `${origin}/cart?canceled=1`,
-	  shipping_options: [{
-		shipping_rate_data: {
-		  type: "fixed_amount",
-		  fixed_amount: { amount: shipping_total_cents, currency: "usd" },
-		  display_name: shippingLabel,
-		  delivery_estimate: {
-			minimum: { unit: "business_day", value: 3 },
-			maximum: { unit: "business_day", value: 7 },
+	  shipping_options: [
+		// Local pickup option
+		{
+		  shipping_rate_data: {
+			type: "fixed_amount",
+			fixed_amount: { amount: 0, currency: "usd" },
+			display_name: "Local pickup",
+			// No delivery estimate for pickup
 		  },
 		},
-	  }],
+		// Standard shipping option (with discount/label logic)
+		{
+		  shipping_rate_data: {
+			type: "fixed_amount",
+			fixed_amount: { amount: shipping_total_cents, currency: "usd" },
+			display_name: shippingLabel,
+			delivery_estimate: {
+			  minimum: { unit: "business_day", value: 3 },
+			  maximum: { unit: "business_day", value: 7 },
+			},
+		  },
+		},
+	  ],
 	  shipping_address_collection: { allowed_countries: ALLOWED_COUNTRIES },
 	  allow_promotion_codes: true,
 	});
