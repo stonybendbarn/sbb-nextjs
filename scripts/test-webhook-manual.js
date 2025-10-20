@@ -2,7 +2,7 @@
 const http = require('http');
 const crypto = require('crypto');
 
-const webhookSecret = 'whsec_287eeb50a1333e9c00f74ee5d111cea5f853f09be35d3e38618c40c4e77c0aa5';
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const webhookUrl = 'http://localhost:3000/api/stripe-webhook';
 
 // Sample checkout.session.completed event
