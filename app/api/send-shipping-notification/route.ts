@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
 
     const order = rows[0];
     
-    // Parse the stored data
-    const shippingAddress = JSON.parse(order.shipping_address || '{}');
-    const items = JSON.parse(order.items || '[]');
+    // Data is already parsed from JSONB columns
+    const shippingAddress = order.shipping_address || {};
+    const items = order.items || [];
 
     const orderDetails: OrderDetails = {
       orderId: order.id,
@@ -52,6 +52,18 @@ export async function POST(req: NextRequest) {
 
     // Send shipping notification
     await sendOrderShippedEmail(orderDetails, trackingNumber);
+
+    // Update order with email tracking information
+    await sql`
+      UPDATE orders 
+      SET 
+        email_sent_at = NOW(),
+        email_tracking_number = ${trackingNumber || null},
+        email_status = 'sent',
+        status = 'shipped',
+        updated_at = NOW()
+      WHERE id = ${orderId}
+    `;
 
     return NextResponse.json({ success: true, message: "Shipping notification sent" });
   } catch (error) {

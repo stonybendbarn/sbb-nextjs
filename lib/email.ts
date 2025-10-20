@@ -25,6 +25,13 @@ export interface OrderDetails {
   };
 }
 
+export interface ConsolidatedOrderDetails {
+  customerEmail: string;
+  customerName: string;
+  orders: OrderDetails[];
+  trackingNumber?: string;
+}
+
 export async function sendOrderConfirmationEmail(orderDetails: OrderDetails) {
   const { orderId, customerEmail, customerName, items, subtotal, shipping, total, shippingAddress } = orderDetails;
   
@@ -236,6 +243,106 @@ export async function sendAdminOrderNotification(orderDetails: OrderDetails) {
     console.log(`✅ Admin order notification sent for order ${orderId}`);
   } catch (error) {
     console.error("❌ Failed to send admin order notification:", error);
+    throw error;
+  }
+}
+
+export async function sendConsolidatedShippingEmail(consolidatedDetails: ConsolidatedOrderDetails) {
+  const { customerEmail, customerName, orders, trackingNumber } = consolidatedDetails;
+  
+  const formatPrice = (cents: number) => (cents / 100).toLocaleString(undefined, { 
+    style: "currency", 
+    currency: "USD" 
+  });
+
+  // Calculate totals across all orders
+  const totalSubtotal = orders.reduce((sum, order) => sum + order.subtotal, 0);
+  const totalShipping = orders.reduce((sum, order) => sum + order.shipping, 0);
+  const grandTotal = totalSubtotal + totalShipping;
+
+  // Get shipping address from first order (should be the same for all)
+  const shippingAddress = orders[0].shippingAddress;
+  const addressString = [
+    shippingAddress.line1,
+    shippingAddress.line2,
+    `${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postal_code}`,
+    shippingAddress.country
+  ].filter(Boolean).join('\n');
+
+  // Build order summary
+  const orderSummary = orders.map(order => {
+    const itemsList = order.items.map(item => 
+      `${item.name}${item.quantity > 1 ? ` (Qty: ${item.quantity})` : ''}`
+    ).join(', ');
+    
+    return `
+      <div style="border: 1px solid #ddd; margin: 10px 0; padding: 15px; border-radius: 5px;">
+        <h3 style="margin: 0 0 10px 0; color: #8B4513;">Order #${order.orderId}</h3>
+        <p style="margin: 5px 0;"><strong>Items:</strong> ${itemsList}</p>
+        <p style="margin: 5px 0;"><strong>Subtotal:</strong> ${formatPrice(order.subtotal)}</p>
+        <p style="margin: 5px 0;"><strong>Shipping:</strong> ${formatPrice(order.shipping)}</p>
+        <p style="margin: 5px 0; font-weight: bold; color: #8B4513;"><strong>Total:</strong> ${formatPrice(order.total)}</p>
+      </div>
+    `;
+  }).join('');
+
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    await resend.emails.send({
+      from: process.env.FROM_EMAIL!,
+      to: customerEmail,
+      subject: `Your Orders Have Shipped - ${orders.map(o => o.orderId).join(', ')}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #333; border-bottom: 2px solid #8B4513; padding-bottom: 10px;">
+            Your Orders Have Shipped!
+          </h1>
+          
+          <p>Dear ${customerName},</p>
+          
+          <p>Great news! Your order${orders.length > 1 ? 's have' : ' has'} been shipped and ${orders.length > 1 ? 'are' : 'is'} on ${orders.length > 1 ? 'their' : 'its'} way to you.</p>
+          
+          ${trackingNumber ? `
+            <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <h3 style="margin: 0 0 10px 0; color: #2d5a2d;">Tracking Information</h3>
+              <p style="margin: 0;"><strong>Tracking Number:</strong> ${trackingNumber}</p>
+            </div>
+          ` : ''}
+          
+          <h2 style="color: #8B4513; margin-top: 30px;">Order Details</h2>
+          
+          ${orderSummary}
+          
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin: 0 0 10px 0; color: #8B4513;">Order Summary</h3>
+            <p style="margin: 5px 0;"><strong>Total Items:</strong> ${orders.length} order${orders.length > 1 ? 's' : ''}</p>
+            <p style="margin: 5px 0;"><strong>Total Subtotal:</strong> ${formatPrice(totalSubtotal)}</p>
+            <p style="margin: 5px 0;"><strong>Total Shipping:</strong> ${formatPrice(totalShipping)}</p>
+            <p style="margin: 5px 0; font-weight: bold; color: #8B4513; font-size: 18px;"><strong>Grand Total:</strong> ${formatPrice(grandTotal)}</p>
+          </div>
+          
+          <h2 style="color: #8B4513; margin-top: 30px;">Shipping Address</h2>
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 10px 0;">
+            <pre style="margin: 0; font-family: Arial, sans-serif; white-space: pre-line;">${addressString}</pre>
+          </div>
+          
+          <p>You should receive your order${orders.length > 1 ? 's' : ''} within 3-7 business days.</p>
+          
+          <p>If you have any questions about your shipment${orders.length > 1 ? 's' : ''}, please contact us at <a href="mailto:stonybendbarn@gmail.com">stonybendbarn@gmail.com</a>.</p>
+          
+          <p>Thank you for your business!</p>
+          
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+          <p style="font-size: 12px; color: #666; text-align: center;">
+            Stony Bend Barn - Handcrafted Woodworking
+          </p>
+        </div>
+      `,
+    });
+    
+    console.log(`✅ Consolidated shipping email sent to ${customerEmail} for ${orders.length} order(s)`);
+  } catch (error) {
+    console.error("❌ Failed to send consolidated shipping email:", error);
     throw error;
   }
 }
