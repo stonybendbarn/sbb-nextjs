@@ -16,7 +16,7 @@ export default function SuccessPage() {
       <h1 className="text-2xl font-semibold">Thank you! 🎉</h1>
       <p>Your order was received. We’ll send an email with the details.</p>
       <div className="pt-4">
-        <Button asChild><Link href="/inventory">Back to Inventory</Link></Button>
+        <Button asChild><Link href="/">Back to Home</Link></Button>
       </div>
     </main>
   );
