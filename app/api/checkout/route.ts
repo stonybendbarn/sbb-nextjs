@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
 		stock_status,
 		images,
 		shipping_cents,
-		weight_oz,
+		estimated_weight_lbs,
 		length_inches,
 		width_inches,
 		height_inches,
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
 	  stock_status: string | null;
 	  images?: string[] | null;
 	  shipping_cents: number | null;
-	  weight_oz: number;
+	  estimated_weight_lbs: number;
 	  length_inches: number;
 	  width_inches: number;
 	  height_inches: number;
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
 	  const productsForShipping = rows
 		.filter(row => (row.stock_status || "").toLowerCase() !== "sold")
 		.map(row => ({
-		  weight_oz: row.weight_oz || 0,
+		  weight_oz: (row.estimated_weight_lbs || 0) * 16, // Convert lbs to oz for Shippo
 		  length_inches: row.length_inches || 0,
 		  width_inches: row.width_inches || 0,
 		  height_inches: row.height_inches || 0,
