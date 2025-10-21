@@ -71,13 +71,23 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // Load the product (we’ll support single-item checkout for now)
-    // --- Cart-aware checkout: fetch all items in the request ---
+	// Load the product (we'll support single-item checkout for now)
+	// --- Cart-aware checkout: fetch all items in the request ---
 	const ids: string[] = Array.isArray(body?.items)
 	  ? body.items.map((i: { id: string }) => String(i.id))
 	  : body?.productId
 		? [String(body.productId)]
 		: [];
+
+	// Create a map of item IDs to quantities
+	const itemQuantities: Record<string, number> = {};
+	if (Array.isArray(body?.items)) {
+	  body.items.forEach((i: { id: string; qty: number }) => {
+		itemQuantities[String(i.id)] = i.qty || 1;
+	  });
+	} else if (body?.productId) {
+	  itemQuantities[String(body.productId)] = 1;
+	}
 
 	if (!ids.length) {
 	  return NextResponse.json({ error: "No items to purchase" }, { status: 400 });
@@ -119,13 +129,16 @@ export async function POST(req: NextRequest) {
 	  if (sold) continue;
 
 	  const unit_amount = (row.sale_price_cents ?? row.price_cents) || 0;
-	  orderSubtotalCents += unit_amount;
+	  const quantity = itemQuantities[String(row.id)] || 1;
+	  const line_total = unit_amount * quantity;
+	  
+	  orderSubtotalCents += line_total;
 	  if (unit_amount <= 0) continue;
 
 	  const imageUrl = isHttpsPublic ? toAbsoluteUrl(row.images?.[0]) : undefined;
 
 	  line_items.push({
-		quantity: 1,
+		quantity: quantity,
 		price_data: {
 		  currency: "usd",
 		  unit_amount,

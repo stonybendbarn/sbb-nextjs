@@ -22,6 +22,8 @@ type Product = {
   images: string[] | null;
   description: string;
   shipping_cents: number | null;
+  available_quantity: number;
+  is_quantity_based: boolean;
 };
 
 const categories = [
@@ -161,7 +163,7 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
 				const isOnSale = status === "on sale" || hasSalePrice;
                 const isSold   = status === "sold";
                 const isInStock= status === "in stock";
-                const canBuy   = isInStock || isOnSale;
+                const canBuy   = (isInStock || isOnSale) && (!item.is_quantity_based || item.available_quantity > 0);
 				const priceForCart = isOnSale && item.sale_price_cents ? item.sale_price_cents : item.price_cents;
                 const images   = item.images ?? [];
 
@@ -195,6 +197,18 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
                           <span className="text-2xl font-bold text-primary">{fmt(item.price_cents)}</span>
                         )}
                       </div>
+                      {/* Stock level display for quantity-based items */}
+                      {item.is_quantity_based && (
+                        <div className="flex justify-between items-center pt-1">
+                          <span className="text-sm text-muted-foreground">Stock:</span>
+                          <span className={`text-sm font-medium ${
+                            item.available_quantity > 3 ? 'text-green-600' : 
+                            item.available_quantity > 0 ? 'text-yellow-600' : 'text-red-600'
+                          }`}>
+                            {item.available_quantity > 0 ? `${item.available_quantity} available` : 'Sold out'}
+                          </span>
+                        </div>
+                      )}
                       {/* Shipping line intentionally omitted */}
                     </CardContent>
 
@@ -235,6 +249,8 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
 							price_cents={priceForCart}
 							image={images[0] ?? null}
 							disabled={!canBuy}
+							is_quantity_based={item.is_quantity_based}
+							available_quantity={item.available_quantity}
 						  />
 
 						</div>

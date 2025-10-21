@@ -67,10 +67,17 @@ function CartContent() {
                 id={`qty-${i.id}`}
                 type="number"
                 min={1}
+                max={i.is_quantity_based ? i.available_quantity : 1}
                 value={i.quantity}
                 onChange={(e) => setQty(i.id, Math.max(1, parseInt(e.target.value || "1", 10)))}
                 className="w-20"
+                disabled={!i.is_quantity_based}
               />
+              {i.is_quantity_based && (
+                <span className="text-xs text-neutral-500">
+                  (max: {i.available_quantity})
+                </span>
+              )}
             </div>
 
             <div className="w-24 text-right font-medium">
@@ -95,7 +102,7 @@ function CartContent() {
               const res = await fetch("/api/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items: items.map(i => ({ id: i.id, qty: 1 })) }),
+                body: JSON.stringify({ items: items.map(i => ({ id: i.id, qty: i.quantity })) }),
               });
               if (!res.ok) return console.error(await res.text());
               const { url } = await res.json();
