@@ -2,11 +2,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sql } from "@vercel/postgres";
+import { calculateShippoShipping, getFallbackShipping } from "@/lib/shippo-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2024-06-20" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-09-30.clover" });
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 const isHttpsPublic = BASE_URL.startsWith("https://");
 
@@ -93,8 +94,8 @@ export async function POST(req: NextRequest) {
 	  return NextResponse.json({ error: "No items to purchase" }, { status: 400 });
 	}
 
-	// Pull all products
-	const { rows } = await sql/*sql*/`
+	// Pull all products with shipping dimensions
+	const { rows } = await sql`
 	  SELECT
 		id,
 		name,
@@ -103,7 +104,12 @@ export async function POST(req: NextRequest) {
 		sale_price_cents,
 		stock_status,
 		images,
-		shipping_cents
+		shipping_cents,
+		weight_oz,
+		length_inches,
+		width_inches,
+		height_inches,
+		shipping_class
 	  FROM products
 	  WHERE id = ANY(${ids})
 	`;
@@ -124,6 +130,11 @@ export async function POST(req: NextRequest) {
 	  stock_status: string | null;
 	  images?: string[] | null;
 	  shipping_cents: number | null;
+	  weight_oz: number;
+	  length_inches: number;
+	  width_inches: number;
+	  height_inches: number;
+	  shipping_class: string;
 	}>) {
 	  const sold = (row.stock_status || "").toLowerCase() === "sold";
 	  if (sold) continue;
@@ -152,11 +163,53 @@ export async function POST(req: NextRequest) {
 		},
 	  });
 
-	  // Per-item shipping with discount logic (sum it up)
-	  const baseShip = row.shipping_cents ?? defaultShippingForCategory(row.category);
-	  const discountedShip = applyShippingDiscount(baseShip);
-	  shipping_total_cents += Math.max(0, discountedShip);
+	  // Collect products for Shippo calculation (will calculate after loop)
 	} // <-- CLOSE THE LOOP ✅
+
+	// Calculate shipping using Shippo API
+	try {
+	  // Collect all products for combined shipping calculation
+	  const productsForShipping = rows
+		.filter(row => (row.stock_status || "").toLowerCase() !== "sold")
+		.map(row => ({
+		  weight_oz: row.weight_oz || 0,
+		  length_inches: row.length_inches || 0,
+		  width_inches: row.width_inches || 0,
+		  height_inches: row.height_inches || 0,
+		  shipping_class: row.shipping_class || 'standard'
+		}));
+	  
+	  if (productsForShipping.length > 0) {
+		// For now, use a default customer address (in real implementation, 
+		// you'd get this from the customer during checkout)
+		const defaultCustomerAddress = {
+		  name: "Customer",
+		  street1: "123 Main St",
+		  city: "Raleigh",
+		  state: "NC",
+		  zip: "27601",
+		  country: "US"
+		};
+		
+		const shippoResult = await calculateShippoShipping(
+		  productsForShipping,
+		  defaultCustomerAddress,
+		  orderSubtotalCents
+		);
+		
+		shipping_total_cents = shippoResult.cost * 100; // Convert to cents
+	  }
+	} catch (error) {
+	  console.error('Shippo calculation failed, using fallback:', error);
+	  // Fallback to your current system
+	  shipping_total_cents = 0;
+	  for (const row of rows) {
+		if ((row.stock_status || "").toLowerCase() === "sold") continue;
+		const baseShip = row.shipping_cents ?? defaultShippingForCategory(row.category);
+		const discountedShip = applyShippingDiscount(baseShip);
+		shipping_total_cents += Math.max(0, discountedShip);
+	  }
+	}
 
 	// Order-level free-shipping threshold (apply after summing everything)
 	if (FREE_SHIP_THRESHOLD_CENTS > 0 && orderSubtotalCents >= FREE_SHIP_THRESHOLD_CENTS) {
