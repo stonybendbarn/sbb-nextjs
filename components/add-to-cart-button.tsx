@@ -21,7 +21,7 @@ export default function AddToCartButton({ id, name, price_cents, image, disabled
       type="button"
       size="sm"
       variant="outline"
-      className="w-full sm:w-auto"
+      className="w-full"
       disabled={disabled}
       onClick={() => add({ 
         id, 

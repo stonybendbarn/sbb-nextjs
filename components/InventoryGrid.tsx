@@ -216,33 +216,7 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
 					  {isSold ? (
 						<Button disabled size="sm" variant="outline">Sold</Button>
 					  ) : (
-						<div className="w-full flex flex-col sm:flex-row gap-2">
-						  <Button
-							type="button"
-							size="sm"
-							className={isOnSale ? `${SALE_STYLES[SALE_THEME].button}` : "w-full sm:w-auto"}
-							disabled={!canBuy}
-							onClick={async () => {
-							  try {
-								const res = await fetch("/api/checkout", {
-								  method: "POST",
-								  headers: { "Content-Type": "application/json" },
-								  body: JSON.stringify({ productId: item.id }),
-								});
-								if (!res.ok) {
-								  console.error("Checkout create failed", await res.text());
-								  return;
-								}
-								const { url } = await res.json();
-								window.location.href = url;
-							  } catch (e) {
-								console.error("Checkout error", e);
-							  }
-							}}
-						  >
-							{canBuy ? (isOnSale ? "Buy Now (On Sale)" : "Buy Now") : "Sold Out"}
-						  </Button>
-
+						<div className="w-full">
 						  <AddToCartButton
 							id={String(item.id)}               // cast number → string
 							name={item.name}
@@ -252,7 +226,6 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
 							is_quantity_based={item.is_quantity_based}
 							available_quantity={item.available_quantity}
 						  />
-
 						</div>
 					  )}
 					</CardFooter>
