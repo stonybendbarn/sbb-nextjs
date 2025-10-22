@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sql } from "@vercel/postgres";
-import { calculateShippoShipping, getFallbackShipping } from "@/lib/shippo-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -108,8 +107,7 @@ export async function POST(req: NextRequest) {
 		estimated_weight_lbs,
 		length_inches,
 		width_inches,
-		height_inches,
-		shipping_class
+		height_inches
 	  FROM products
 	  WHERE id = ANY(${ids})
 	`;
@@ -134,7 +132,6 @@ export async function POST(req: NextRequest) {
 	  length_inches: number;
 	  width_inches: number;
 	  height_inches: number;
-	  shipping_class: string;
 	}>) {
 	  const sold = (row.stock_status || "").toLowerCase() === "sold";
 	  if (sold) continue;
@@ -166,43 +163,13 @@ export async function POST(req: NextRequest) {
 	  // Collect products for Shippo calculation (will calculate after loop)
 	} // <-- CLOSE THE LOOP ✅
 
-	// Calculate shipping using Shippo API
-	try {
-	  // Collect all products for combined shipping calculation
-	  const productsForShipping = rows
-		.filter(row => (row.stock_status || "").toLowerCase() !== "sold")
-		.map(row => ({
-		  weight_oz: (row.estimated_weight_lbs || 0) * 16, // Convert lbs to oz for Shippo
-		  length_inches: row.length_inches || 0,
-		  width_inches: row.width_inches || 0,
-		  height_inches: row.height_inches || 0,
-		  shipping_class: row.shipping_class || 'standard'
-		}));
-	  
-	  if (productsForShipping.length > 0) {
-		// For now, use a default customer address (in real implementation, 
-		// you'd get this from the customer during checkout)
-		const defaultCustomerAddress = {
-		  name: "Customer",
-		  street1: "123 Main St",
-		  city: "Raleigh",
-		  state: "NC",
-		  zip: "27601",
-		  country: "US"
-		};
-		
-		const shippoResult = await calculateShippoShipping(
-		  productsForShipping,
-		  defaultCustomerAddress,
-		  orderSubtotalCents
-		);
-		
-		shipping_total_cents = shippoResult.cost * 100; // Convert to cents
-	  }
-	} catch (error) {
-	  console.error('Shippo calculation failed, using fallback:', error);
-	  // Fallback to your current system
-	  shipping_total_cents = 0;
+	// Use calculated shipping if provided, otherwise use current system
+	if (body.calculatedShipping !== undefined) {
+	  // Use the calculated shipping from the cart page
+	  shipping_total_cents = Math.round(body.calculatedShipping * 100); // Convert dollars to cents
+	  console.log('Using calculated shipping:', body.calculatedShipping, 'cents:', shipping_total_cents);
+	} else {
+	  // Use your current shipping system for checkout
 	  for (const row of rows) {
 		if ((row.stock_status || "").toLowerCase() === "sold") continue;
 		const baseShip = row.shipping_cents ?? defaultShippingForCategory(row.category);
@@ -230,6 +197,30 @@ export async function POST(req: NextRequest) {
 		  ? `Shipping (${SHIPPING_DISCOUNT_PERCENT}% off)`
 		  : "Shipping");
 
+	// Always show both local pickup and shipping options
+	const shippingOptions = [
+		// Local pickup option
+		{
+		  shipping_rate_data: {
+			type: "fixed_amount",
+			fixed_amount: { amount: 0, currency: "usd" },
+			display_name: "Local pickup",
+		  },
+		},
+		// Shipping option (calculated or standard)
+		{
+		  shipping_rate_data: {
+			type: "fixed_amount",
+			fixed_amount: { amount: shipping_total_cents, currency: "usd" },
+			display_name: body.calculatedShipping !== undefined ? "Shipping" : shippingLabel,
+			delivery_estimate: {
+			  minimum: { unit: "business_day", value: 3 },
+			  maximum: { unit: "business_day", value: 7 },
+			},
+		  },
+		},
+	];
+
 	// Create the session
 	const session = await stripe.checkout.sessions.create({
 	  mode: "payment",
@@ -238,29 +229,7 @@ export async function POST(req: NextRequest) {
 	  automatic_tax: { enabled: true },
 	  success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
 	  cancel_url: `${origin}/cart?canceled=1`,
-	  shipping_options: [
-		// Local pickup option
-		{
-		  shipping_rate_data: {
-			type: "fixed_amount",
-			fixed_amount: { amount: 0, currency: "usd" },
-			display_name: "Local pickup",
-			// No delivery estimate for pickup
-		  },
-		},
-		// Standard shipping option (with discount/label logic)
-		{
-		  shipping_rate_data: {
-			type: "fixed_amount",
-			fixed_amount: { amount: shipping_total_cents, currency: "usd" },
-			display_name: shippingLabel,
-			delivery_estimate: {
-			  minimum: { unit: "business_day", value: 3 },
-			  maximum: { unit: "business_day", value: 7 },
-			},
-		  },
-		},
-	  ],
+	  shipping_options: shippingOptions,
 	  shipping_address_collection: { allowed_countries: ALLOWED_COUNTRIES },
 	  allow_promotion_codes: true,
 	});

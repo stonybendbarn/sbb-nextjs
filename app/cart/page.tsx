@@ -11,11 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
+import ShippingCalculator from "@/components/shipping-calculator";
 
 function CartContent() {
   const { items, remove, setQty, subtotalCents } = useCart();
   const params = useSearchParams();
   const canceled = params.get("canceled") === "1";
+  const [calculatedShipping, setCalculatedShipping] = useState<number | null>(null);
+  const [customerAddress, setCustomerAddress] = useState<any>(null);
 
   // prevent false “empty cart” before client mount
   const [mounted, setMounted] = useState(false);
@@ -91,18 +94,49 @@ function CartContent() {
         ))}
       </ul>
 
+      <ShippingCalculator 
+        productIds={items.map(i => i.id)}
+        onShippingCalculated={(cost, address) => {
+          setCalculatedShipping(cost);
+          setCustomerAddress(address);
+        }}
+      />
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-lg">
-          Subtotal: <span className="font-semibold">${(subtotalCents / 100).toFixed(2)}</span>
+        <div className="text-lg space-y-1">
+          <div>
+            Subtotal: <span className="font-semibold">${(subtotalCents / 100).toFixed(2)}</span>
+          </div>
+          {calculatedShipping !== null && (
+            <div>
+              Shipping: <span className="font-semibold">${calculatedShipping.toFixed(2)}</span>
+            </div>
+          )}
+          {calculatedShipping !== null && (
+            <div className="text-xl font-bold">
+              Total: <span className="font-bold">${((subtotalCents / 100) + calculatedShipping).toFixed(2)}</span>
+            </div>
+          )}
         </div>
         <div className="flex gap-3">
           <Button variant="secondary" asChild><Link href="/inventory">Continue Shopping</Link></Button>
           <Button
             onClick={async () => {
+              const checkoutData: any = { 
+                items: items.map(i => ({ id: i.id, qty: i.quantity })) 
+              };
+              
+              // Include calculated shipping if available
+              if (calculatedShipping !== null) {
+                checkoutData.calculatedShipping = calculatedShipping;
+                checkoutData.customerAddress = customerAddress;
+                console.log('Sending calculated shipping to checkout:', calculatedShipping);
+              }
+              
               const res = await fetch("/api/checkout", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ items: items.map(i => ({ id: i.id, qty: i.quantity })) }),
+                body: JSON.stringify(checkoutData),
               });
               if (!res.ok) return console.error(await res.text());
               const { url } = await res.json();
