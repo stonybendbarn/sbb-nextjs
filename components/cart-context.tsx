@@ -55,15 +55,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [items, hydrated]);
 
-  // Unique-item behavior (1 of each)
+  // Allow quantities for quantity-based items, unique for others
   const add: CartState["add"] = (item, qty = 1) => {
-    setItems(prev => (prev.some(p => p.id === item.id)
-      ? prev
-      : [...prev, { ...item, quantity: Math.max(1, qty) }]));
+    setItems(prev => {
+      const existing = prev.find(p => p.id === item.id);
+      if (existing) {
+        // If it's quantity-based, allow adding more
+        if (item.is_quantity_based) {
+          return prev.map(p => p.id === item.id 
+            ? { ...p, quantity: Math.min(p.quantity + qty, item.available_quantity || 1) }
+            : p
+          );
+        }
+        // For unique items, don't add if already in cart
+        return prev;
+      }
+      // Add new item
+      return [...prev, { ...item, quantity: Math.max(1, qty) }];
+    });
   };
   const remove: CartState["remove"] = (id) => setItems(prev => prev.filter(p => p.id !== id));
-  const setQty: CartState["setQty"] = (id, _qty) =>
-    setItems(prev => prev.map(p => (p.id === id ? { ...p, quantity: 1 } : p)));
+  const setQty: CartState["setQty"] = (id, qty) =>
+    setItems(prev => prev.map(p => (p.id === id 
+      ? { ...p, quantity: Math.max(1, Math.min(qty, p.available_quantity || 1)) }
+      : p
+    )));
   const clear = () => setItems([]);
 
   const count = useMemo(() => items.reduce((n, i) => n + i.quantity, 0), [items]);

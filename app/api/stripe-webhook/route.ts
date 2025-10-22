@@ -26,6 +26,23 @@ async function markProductSold(productId: string | number) {
   return rows[0] ?? null;
 }
 
+// Helper: handle quantity-based inventory updates
+async function updateProductQuantity(productId: string | number, quantityPurchased: number) {
+  const { rows } = await sql`
+    UPDATE products
+    SET available_quantity = available_quantity - ${quantityPurchased},
+        stock_status = CASE 
+          WHEN (available_quantity - ${quantityPurchased}) <= 0 THEN 'sold out'
+          ELSE stock_status 
+        END
+    WHERE id = ${productId}
+      AND is_quantity_based = true
+      AND available_quantity >= ${quantityPurchased}
+    RETURNING *;
+  `;
+  return rows[0] ?? null;
+}
+
 export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature");
   if (!signature) {
@@ -104,15 +121,37 @@ export async function POST(req: Request) {
           break;
         }
 
-        // Mark all products as sold
-        for (const productId of productIds) {
-          const updated = await markProductSold(productId);
-          if (updated) {
-            console.log(`✅ Product ${productId} marked as Sold.`);
-          } else {
-            console.log(
-              `ℹ️ Product ${productId} was already Sold or not found. Skipping.`
-            );
+        // Update inventory for all products
+        for (const item of lineItems.data) {
+          if (item.price?.product && typeof item.price.product === 'string') {
+            const stripeProduct = await stripe.products.retrieve(item.price.product);
+            const internalProductId = stripeProduct.metadata?.internal_product_id;
+            const quantity = item.quantity || 1;
+            
+            if (internalProductId) {
+              // Check if it's a quantity-based item
+              const { rows } = await sql`
+                SELECT is_quantity_based FROM products WHERE id = ${internalProductId}
+              `;
+              
+              if (rows.length > 0 && rows[0].is_quantity_based) {
+                // Handle quantity-based item
+                const updated = await updateProductQuantity(internalProductId, quantity);
+                if (updated) {
+                  console.log(`✅ Product ${internalProductId} quantity decremented by ${quantity}. Remaining: ${updated.available_quantity}`);
+                } else {
+                  console.log(`❌ Failed to update quantity for product ${internalProductId}`);
+                }
+              } else {
+                // Handle unique item (mark as sold)
+                const updated = await markProductSold(internalProductId);
+                if (updated) {
+                  console.log(`✅ Product ${internalProductId} marked as Sold.`);
+                } else {
+                  console.log(`ℹ️ Product ${internalProductId} was already Sold or not found. Skipping.`);
+                }
+              }
+            }
           }
         }
 
