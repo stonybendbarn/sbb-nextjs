@@ -224,6 +224,13 @@ export async function POST(req: Request) {
         break;
       }
 
+      case "checkout.session.expired": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        console.log(`ℹ️ Checkout session expired: ${session.id}`);
+        // No action needed for expired sessions
+        break;
+      }
+
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
