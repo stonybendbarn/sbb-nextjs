@@ -26,8 +26,8 @@ export default function AdminLoginPage() {
       });
 
       if (response.ok) {
-        // Redirect to admin orders page
-        window.location.href = '/admin/orders';
+        // Redirect to admin dashboard
+        window.location.href = '/admin';
       } else {
         const data = await response.json();
         setError(data.error || 'Invalid password');
