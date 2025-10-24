@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Navigation } from "@/components/navigation";
+import { AdminNavigation } from "@/components/admin-navigation";
 import { Footer } from "@/components/footer";
 
 interface Order {
@@ -40,14 +40,6 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/admin/logout', { method: 'POST' });
-      window.location.href = '/admin/login';
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
 
   const fetchOrders = async () => {
     try {
@@ -167,8 +159,8 @@ export default function AdminOrdersPage() {
   if (loading) {
     return (
       <div className="min-h-screen">
-        <Navigation />
-        <div className="pt-32 md:pt-40 pb-12 md:pb-16 bg-accent">
+        <AdminNavigation />
+        <div className="pt-24 pb-12 md:pb-16 bg-accent">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <p>Loading orders...</p>
           </div>
@@ -180,24 +172,18 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="min-h-screen">
-      <Navigation />
+      <AdminNavigation />
 
-      <section className="pt-32 md:pt-40 pb-12 md:pb-16 bg-accent">
+      <section className="pt-24 pb-12 md:pb-16 bg-accent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="flex justify-between items-center mb-6">
-              <div></div>
-              <div>
-                <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-foreground text-balance">
-                  Order Management
-                </h1>
-                <p className="text-lg md:text-xl text-muted-foreground">
-                  View and manage customer orders
-                </p>
-              </div>
-              <Button onClick={handleLogout} variant="outline">
-                Logout
-              </Button>
+            <div className="mb-6">
+              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-foreground text-balance">
+                Order Management
+              </h1>
+              <p className="text-lg md:text-xl text-muted-foreground">
+                View and manage customer orders
+              </p>
             </div>
           </div>
         </div>
