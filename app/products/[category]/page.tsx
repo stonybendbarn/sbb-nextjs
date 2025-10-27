@@ -72,11 +72,11 @@ const categoryData: Record<
         image: "/images/cutting-boards/eg-opt-warp.jpeg",
       },	  
       {
-        name: "Stair Step End Grain Board",
+        name: "Stair Step Side Grain Board",
         description:
-          'The Stair Step End Grain Board is made with two contrasting woods to highlight the stair step pattern.',
+          'The Stair Step Side Grain Board is made with contrasting woods to highlight the stair step pattern.',
         size: '16" x 16" x 1.5"',
-        price: "$180",
+        price: "$130",
         image: "/images/cutting-boards/step-board.jpeg",
       },
       {
