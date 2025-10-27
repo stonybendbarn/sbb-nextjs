@@ -10,7 +10,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const { rows } = await sql`
       SELECT 
         id, name, category, size, price_cents, sale_price_cents, stock_status,
-        images, description, shipping_cents, available_quantity, is_quantity_based,
+        images, description, shipping_cents, available_quantity, is_quantity_based, inc_products_page,
         estimated_weight_lbs, length_inches, width_inches, height_inches,
         updated_at
       FROM products 
@@ -45,6 +45,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       shipping_cents,
       available_quantity,
       is_quantity_based,
+      inc_products_page,
       estimated_weight_lbs,
       length_inches,
       width_inches,
@@ -71,6 +72,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         shipping_cents = ${shipping_cents || null},
         available_quantity = ${available_quantity || 1},
         is_quantity_based = ${is_quantity_based || false},
+        inc_products_page = ${inc_products_page || false},
         estimated_weight_lbs = ${estimated_weight_lbs || null},
         length_inches = ${length_inches || null},
         width_inches = ${width_inches || null},

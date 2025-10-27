@@ -17,6 +17,7 @@ export function Navigation() {
     //{ href: "/gallery", label: "Gallery" },
     { href: "/project-files", label: "Project Files" },
     { href: "/custom-orders", label: "Custom Orders" },
+    { href: "/products/barn-finds", label: "Barn Finds!" },
     { href: "/events", label: "Events" },
   ]
 

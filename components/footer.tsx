@@ -79,6 +79,16 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/products/cheese-boards" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Cheese & Charcuterie Boards
+                </Link>
+              </li>
+              <li>
+                <Link href="/products/coasters" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Coasters
+                </Link>
+              </li>
+              <li>
                 <Link href="/products/furniture" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                   Furniture
                 </Link>
@@ -96,6 +106,11 @@ export function Footer() {
               <li>
                 <Link href="/products/montessori" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                   Montessori
+                </Link>
+              </li>
+              <li>
+                <Link href="/products/barn-finds" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Barn Finds!
                 </Link>
               </li>
             </ul>
