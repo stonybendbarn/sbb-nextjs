@@ -35,6 +35,7 @@ const categories = [
   { value: "outdoor-items", label: "Outdoor Items" },
   { value: "furniture", label: "Furniture" },
   { value: "bar-ware", label: "Bar Ware" },
+  { value: "laser-engraving", label: "Laser Engraving" },
   { value: "barn-finds", label: "Barn Finds!" },
 ];
 

@@ -42,6 +42,10 @@ const categoryMetadata: Record<
     name: "Bar & Kitchen Ware",
     description: "Sophisticated accessories for the home bar enthusiast.",
   },
+  "laser-engraving": {
+    name: "Laser Engraving",
+    description: "Custom laser engraving on wood - from maps and plaques to personalized coasters and bottle openers. Showcasing our custom work capabilities.",
+  },
   montessori: {
     name: "Montessori Materials",
     description: "Custom-crafted Montessori materials designed to support child development and learning. Each piece is made to order with attention to educational principles and child safety.",

@@ -30,8 +30,9 @@ export async function GET(req: NextRequest) {
           WHEN 'cheese-boards' THEN 2
           WHEN 'coasters' THEN 3
           WHEN 'bar-ware' THEN 4
-          WHEN 'furniture' THEN 5
-          ELSE 6
+          WHEN 'laser-engraving' THEN 5
+          WHEN 'furniture' THEN 6
+          ELSE 7
         END,
         name ASC
     `;

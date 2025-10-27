@@ -27,6 +27,7 @@ interface Product {
   shipping_cents: number | null;
   available_quantity: number;
   is_quantity_based: boolean;
+  inc_products_page: boolean;
   estimated_weight_lbs: number | null;
   length_inches: number | null;
   width_inches: number | null;
@@ -43,7 +44,8 @@ const categories = [
   'game-boards',
   'outdoor-items',
   'laser-engraving',
-  'montessori'
+  'montessori',
+  'barn-finds'
 ];
 
 const stockStatuses = [
