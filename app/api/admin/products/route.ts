@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const { rows } = await sql`
       SELECT 
         id, name, category, size, price_cents, sale_price_cents, stock_status,
-        images, description, shipping_cents, available_quantity, is_quantity_based,
+        images, description, shipping_cents, available_quantity, is_quantity_based, inc_products_page,
         estimated_weight_lbs, length_inches, width_inches, height_inches,
         updated_at
       FROM products 
@@ -91,6 +91,7 @@ export async function POST(req: NextRequest) {
       shipping_cents,
       available_quantity = 1,
       is_quantity_based = false,
+      inc_products_page = false,
       estimated_weight_lbs,
       length_inches,
       width_inches,
@@ -104,15 +105,21 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
+    // Get the next ID by finding the max ID and adding 1
+    const maxIdResult = await sql`
+      SELECT COALESCE(MAX(CAST(id AS INTEGER)), 0) as max_id FROM products
+    `
+    const nextId = (parseInt(maxIdResult.rows[0].max_id) + 1).toString()
+
     const { rows } = await sql`
       INSERT INTO products (
-        name, category, size, price_cents, sale_price_cents, stock_status,
-        images, description, shipping_cents, available_quantity, is_quantity_based,
+        id, name, category, size, price_cents, sale_price_cents, stock_status,
+        images, description, shipping_cents, available_quantity, is_quantity_based, inc_products_page,
         estimated_weight_lbs, length_inches, width_inches, height_inches
       ) VALUES (
-        ${name}, ${category}, ${size || ''}, ${price_cents}, ${sale_price_cents || null},
+        ${nextId}, ${name}, ${category}, ${size || ''}, ${price_cents}, ${sale_price_cents || null},
         ${stock_status}, ${JSON.stringify(images)}, ${description || ''}, ${shipping_cents || null},
-        ${available_quantity}, ${is_quantity_based}, ${estimated_weight_lbs || null},
+        ${available_quantity}, ${is_quantity_based}, ${inc_products_page}, ${estimated_weight_lbs || null},
         ${length_inches || null}, ${width_inches || null}, ${height_inches || null}
       )
       RETURNING *

@@ -23,6 +23,7 @@ interface Product {
   shipping_cents: number | null;
   available_quantity: number;
   is_quantity_based: boolean;
+  inc_products_page: boolean;
   estimated_weight_lbs: number | null;
   length_inches: number | null;
   width_inches: number | null;
@@ -45,7 +46,8 @@ const categories = [
   'game-boards',
   'outdoor-items',
   'laser-engraving',
-  'montessori'
+  'montessori',
+  'barn-finds'
 ];
 
 const stockStatuses = [
@@ -69,6 +71,7 @@ export default function ProductForm({ product, onSave, onCancel, loading = false
     shipping_cents: null,
     available_quantity: 1,
     is_quantity_based: false,
+    inc_products_page: false,
     estimated_weight_lbs: null,
     length_inches: null,
     width_inches: null,
@@ -93,6 +96,7 @@ export default function ProductForm({ product, onSave, onCancel, loading = false
         shipping_cents: product.shipping_cents || null,
         available_quantity: product.available_quantity || 1,
         is_quantity_based: product.is_quantity_based || false,
+        inc_products_page: (product as any).inc_products_page || false,
         estimated_weight_lbs: product.estimated_weight_lbs || null,
         length_inches: product.length_inches || null,
         width_inches: product.width_inches || null,
@@ -288,6 +292,15 @@ export default function ProductForm({ product, onSave, onCancel, loading = false
                 onCheckedChange={(checked) => handleInputChange('is_quantity_based', checked)}
               />
               <Label htmlFor="is_quantity_based">Quantity-based inventory</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="inc_products_page"
+                checked={formData.inc_products_page}
+                onCheckedChange={(checked) => handleInputChange('inc_products_page', checked)}
+              />
+              <Label htmlFor="inc_products_page">Show on category page</Label>
             </div>
 
             {formData.is_quantity_based && (

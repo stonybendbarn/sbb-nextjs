@@ -32,9 +32,10 @@ const categories = [
   { value: "game-boards", label: "Game Boards" },
   { value: "cheese-boards", label: "Cheese Boards" },
   { value: "coasters", label: "Coasters" },
-  { value: "outdoor", label: "Outdoor Items" },
+  { value: "outdoor-items", label: "Outdoor Items" },
   { value: "furniture", label: "Furniture" },
   { value: "bar-ware", label: "Bar Ware" },
+  { value: "barn-finds", label: "Barn Finds!" },
 ];
 
 const SALE_STYLES = {
