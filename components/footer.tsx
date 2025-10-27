@@ -98,9 +98,14 @@ export function Footer() {
                   Outdoor Items
                 </Link>
               </li>              
-			  <li>
+              <li>
                 <Link href="/products/bar-ware" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                   Bar Ware
+                </Link>
+              </li>
+              <li>
+                <Link href="/products/laser-engraving" className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+                  Laser Engraving
                 </Link>
               </li>
               <li>

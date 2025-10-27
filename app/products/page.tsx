@@ -39,6 +39,11 @@ const productCategories = [
     name: "Bar & Kitchen Ware",
     image: "/images/bar-ware/chaos-lazysusan.jpeg",
   },
+  {
+    id: "laser-engraving",
+    name: "Laser Engraving",
+    image: "/images/laser-engraving/asheville.jpeg",
+  },
 ]
 
 export default function ProductsPage() {

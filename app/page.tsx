@@ -12,6 +12,7 @@ import cheeseBoards from "@/public/images/cheese-boards/cbeg-chaos.jpeg";
 import furniture from "@/public/images/furniture/tab-mah-map-ebo.jpeg";
 import barWare from "@/public/images/bar-ware/chaos-lazysusan.jpeg";
 import outdoorItems from "@/public/images/outdoor-items/IMG_6584.jpeg";
+import laserEngraving from "@/public/images/laser-engraving/asheville.jpeg";
 
 type Card = { name: string; slug: string; image: StaticImageData };
 
@@ -21,6 +22,7 @@ const featured: Card[] = [
   { name: "Cheese & Charcuterie Boards", slug: "cheese-boards", image: cheeseBoards },
   { name: "Furniture", slug: "furniture", image: furniture },
   { name: "Bar & Kitchen Ware", slug: "bar-ware", image: barWare },
+  { name: "Laser Engraving", slug: "laser-engraving", image: laserEngraving },
   { name: "Outdoor Items", slug: "outdoor-items", image: outdoorItems },  
 ];
 

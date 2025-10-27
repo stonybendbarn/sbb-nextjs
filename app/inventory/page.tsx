@@ -22,8 +22,9 @@ async function fetchProducts() {
          when 'cheese-boards'  then 2
          when 'coasters'       then 3
          when 'bar-ware'       then 4
-         when 'furniture'      then 5
-         else 6
+         when 'laser-engraving' then 5
+         when 'furniture'      then 6
+         else 7
        end,
        coalesce(sale_price_cents, price_cents) desc,
        name asc;
