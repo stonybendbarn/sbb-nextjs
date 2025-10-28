@@ -38,8 +38,7 @@ export async function GET(req: NextRequest) {
           WHEN 'barn-finds' THEN 10
           ELSE 11
         END,
-        name ASC,
-        price_cents ASC
+        price_cents DESC
     `;
 
     // Apply filters in JavaScript

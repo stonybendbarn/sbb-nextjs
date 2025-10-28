@@ -30,8 +30,7 @@ async function fetchProducts() {
          when 'barn-finds'     then 10
          else 11
        end,
-       name asc,
-       coalesce(sale_price_cents, price_cents) asc;
+       coalesce(sale_price_cents, price_cents) desc;
   `;
   return rows;
 }
