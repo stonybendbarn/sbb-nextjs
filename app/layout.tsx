@@ -31,6 +31,9 @@ export const metadata: Metadata = {
   verification: {
     google: "your-google-verification-code", // Replace with actual verification code
   },
+  alternates: {
+    canonical: "https://stonybendbarn.com",
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
