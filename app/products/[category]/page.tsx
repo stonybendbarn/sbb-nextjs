@@ -1,6 +1,8 @@
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
+import ProductCategoryNavigation from "@/components/product-category-navigation"
 import { Button } from "@/components/ui/button"
+import { GraduationCap, Search, ShoppingBag } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { sql } from "@vercel/postgres"
@@ -67,6 +69,18 @@ interface Product {
   stock_status: string
 }
 
+// Function to get the appropriate icon for each category
+function getCategoryIcon(category: string) {
+  switch (category) {
+    case 'montessori':
+      return <GraduationCap className="h-8 w-8 text-primary" />
+    case 'barn-finds':
+      return <Search className="h-8 w-8 text-primary" />
+    default:
+      return <ShoppingBag className="h-8 w-8 text-primary" />
+  }
+}
+
 export default async function CategoryPage({ params }: { params: { category: string } }) {
   const categoryInfo = categoryMetadata[params.category]
 
@@ -109,14 +123,13 @@ export default async function CategoryPage({ params }: { params: { category: str
       {/* Category Header */}
       <section className="pt-32 md:pt-40 pb-12 md:pb-16 bg-accent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="h-px flex-1 bg-border" />
-              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-foreground text-balance">
-                {categoryInfo.name}
-              </h1>
-              <div className="h-px flex-1 bg-border" />
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              {params.category === 'barn-finds' ? <Search className="h-8 w-8 text-primary" /> : getCategoryIcon(params.category)}
             </div>
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-foreground text-balance">
+              {categoryInfo.name}
+            </h1>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-pretty">
               {categoryInfo.description}
             </p>
@@ -127,6 +140,9 @@ export default async function CategoryPage({ params }: { params: { category: str
       {/* Products Grid */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          {params.category !== 'montessori' && (
+            <ProductCategoryNavigation currentCategory={params.category} />
+          )}
           {products.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No products available in this category.</p>
@@ -134,14 +150,17 @@ export default async function CategoryPage({ params }: { params: { category: str
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
               {products.map((product, index) => {
-                // Handle images - could be string[], string, or parsed JSON
+                // Handle images - Vercel Postgres returns JSONB as parsed JavaScript values
                 let images: string[] = []
+                
+                // Handle different data types from database
                 if (Array.isArray(product.images)) {
-                  images = product.images
+                  images = product.images.filter(img => img && typeof img === 'string')
                 } else if (typeof product.images === 'string') {
                   try {
-                    images = JSON.parse(product.images)
-                  } catch {
+                    const parsed = JSON.parse(product.images)
+                    images = Array.isArray(parsed) ? parsed.filter(img => img && typeof img === 'string') : []
+                  } catch (e) {
                     images = []
                   }
                 }

@@ -4,7 +4,7 @@ import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Download, Images as ImagesIcon, ChevronLeft, ChevronRight } from "lucide-react"
+import { Download, Images as ImagesIcon, ChevronLeft, ChevronRight, FileText } from "lucide-react"
 import { formatFileSize } from "@/lib/utils"
 import Image from "next/image"
 import { useState, useCallback, KeyboardEvent } from "react"
@@ -134,14 +134,13 @@ export default function ProjectFilesPage() {
       {/* Page Header */}
       <section className="pt-32 md:pt-40 pb-12 md:pb-16 bg-accent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="h-px flex-1 bg-border" />
-              <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-foreground text-balance">
-                Project Files
-              </h1>
-              <div className="h-px flex-1 bg-border" />
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <FileText className="h-8 w-8 text-primary" />
             </div>
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-foreground text-balance">
+              Project Files
+            </h1>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-pretty mb-4">
               Free downloadable plans for select projects. Personal use only.
             </p>
