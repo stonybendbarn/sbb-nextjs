@@ -30,11 +30,16 @@ export async function GET(req: NextRequest) {
           WHEN 'cheese-boards' THEN 2
           WHEN 'coasters' THEN 3
           WHEN 'bar-ware' THEN 4
-          WHEN 'laser-engraving' THEN 5
-          WHEN 'furniture' THEN 6
-          ELSE 7
+          WHEN 'furniture' THEN 5
+          WHEN 'game-boards' THEN 6
+          WHEN 'outdoor-items' THEN 7
+          WHEN 'laser-engraving' THEN 8
+          WHEN 'montessori' THEN 9
+          WHEN 'barn-finds' THEN 10
+          ELSE 11
         END,
-        name ASC
+        name ASC,
+        price_cents ASC
     `;
 
     // Apply filters in JavaScript

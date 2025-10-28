@@ -22,12 +22,16 @@ async function fetchProducts() {
          when 'cheese-boards'  then 2
          when 'coasters'       then 3
          when 'bar-ware'       then 4
-         when 'laser-engraving' then 5
-         when 'furniture'      then 6
-         else 7
+         when 'furniture'      then 5
+         when 'game-boards'    then 6
+         when 'outdoor-items'  then 7
+         when 'laser-engraving' then 8
+         when 'montessori'     then 9
+         when 'barn-finds'     then 10
+         else 11
        end,
-       coalesce(sale_price_cents, price_cents) desc,
-       name asc;
+       name asc,
+       coalesce(sale_price_cents, price_cents) asc;
   `;
   return rows;
 }

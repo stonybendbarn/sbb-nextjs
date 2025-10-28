@@ -11,14 +11,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { X, Save, Package } from "lucide-react";
 
 interface Product {
-  id?: number;
+  id?: string;
   name: string;
   category: string;
   size: string;
   price_cents: number;
   sale_price_cents: number | null;
   stock_status: string;
-  images: string[];
+  images: string[] | null;
   description: string;
   shipping_cents: number | null;
   available_quantity: number;
@@ -28,6 +28,7 @@ interface Product {
   length_inches: number | null;
   width_inches: number | null;
   height_inches: number | null;
+  updated_at?: string;
 }
 
 interface ProductFormProps {
