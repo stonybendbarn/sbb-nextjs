@@ -4,6 +4,7 @@ import { Footer } from "@/components/footer"
 import ProductCategoryNavigation from "@/components/product-category-navigation"
 import { ShoppingBag } from "lucide-react"
 import Link from "next/link"
+import type { Metadata } from "next"
 
 const productCategories = [
   {
@@ -47,6 +48,23 @@ const productCategories = [
     image: "/images/laser-engraving/asheville.jpeg",
   },
 ]
+
+export const metadata: Metadata = {
+  title: "Handcrafted Wood Products | Custom Woodworking | Stony Bend Barn",
+  description: "Explore our collection of handcrafted wood products including cutting boards, game boards, furniture, and more. Each piece is custom-crafted from premium hardwoods by skilled artisans at Stony Bend Barn.",
+  keywords: "handcrafted wood products, custom woodworking, cutting boards, game boards, furniture, artisan, premium hardwood, Stony Bend Barn",
+  openGraph: {
+    title: "Handcrafted Wood Products | Custom Woodworking | Stony Bend Barn",
+    description: "Explore our collection of handcrafted wood products including cutting boards, game boards, furniture, and more. Each piece is custom-crafted from premium hardwoods by skilled artisans at Stony Bend Barn.",
+    type: "website",
+    siteName: "Stony Bend Barn"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Handcrafted Wood Products | Custom Woodworking | Stony Bend Barn",
+    description: "Explore our collection of handcrafted wood products including cutting boards, game boards, furniture, and more. Each piece is custom-crafted from premium hardwoods by skilled artisans at Stony Bend Barn."
+  }
+}
 
 export default function ProductsPage() {
   return (

@@ -13,7 +13,8 @@ async function fetchProducts() {
   noStore(); // opt out of RSC caching for this fetch path
   const { rows } = await sql/*sql*/`
     select id, name, category, size, price_cents, sale_price_cents, stock_status,
-           images, description, shipping_cents, available_quantity, is_quantity_based
+           images, description, shipping_cents, available_quantity, is_quantity_based,
+           seo_title, seo_description, seo_keywords, seo_meta_title, seo_meta_description
       from products
      where LOWER(stock_status) != 'sold'
      order by

@@ -7,6 +7,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { sql } from "@vercel/postgres"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
+import { StructuredData } from "@/components/StructuredData"
+import type { Metadata } from "next"
 
 // Category metadata for page headers
 const categoryMetadata: Record<
@@ -67,6 +69,82 @@ interface Product {
   sale_price_cents: number | null
   images: string[] | string | null
   stock_status: string
+  seo_title?: string
+  seo_description?: string
+  seo_keywords?: string
+  seo_meta_title?: string
+  seo_meta_description?: string
+}
+
+// Function to generate SEO metadata for category pages
+export async function generateMetadata({ params }: { params: { category: string } }): Promise<Metadata> {
+  const categoryInfo = categoryMetadata[params.category]
+  
+  if (!categoryInfo) {
+    return {
+      title: "Category Not Found | Stony Bend Barn",
+      description: "The requested category could not be found."
+    }
+  }
+
+  // Fetch products to get SEO data
+  let products: Product[] = []
+  try {
+    const result = await sql`
+      SELECT 
+        name,
+        seo_title,
+        seo_description,
+        seo_keywords,
+        seo_meta_title,
+        seo_meta_description
+      FROM products
+      WHERE category = ${params.category}
+        AND inc_products_page = true
+      LIMIT 5
+    `
+    products = result.rows as Product[]
+  } catch (error) {
+    console.error("Error fetching products for metadata:", error)
+  }
+
+  // Generate SEO content
+  const categoryName = categoryInfo.name
+  const categoryDescription = categoryInfo.description
+  
+  // Create enhanced title
+  const title = `Premium ${categoryName} | Handcrafted Woodworking | Stony Bend Barn`
+  
+  // Create enhanced description
+  const productNames = products.map(p => p.name).join(", ")
+  const description = `Discover our collection of ${categoryName.toLowerCase()}. ${categoryDescription} Handcrafted from premium hardwoods by skilled artisans at Stony Bend Barn. Custom sizes available. ${productNames ? `Featured items: ${productNames}.` : ''}`
+  
+  // Create keywords
+  const keywords = [
+    categoryName.toLowerCase(),
+    "handcrafted",
+    "custom woodworking",
+    "premium hardwood",
+    "artisan",
+    "Stony Bend Barn"
+  ].join(", ")
+
+  return {
+    title,
+    description,
+    keywords,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      siteName: "Stony Bend Barn"
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description
+    }
+  }
 }
 
 // Function to get the appropriate icon for each category
@@ -118,6 +196,7 @@ export default async function CategoryPage({ params }: { params: { category: str
 
   return (
     <div className="min-h-screen">
+      <StructuredData products={products} category={params.category} categoryName={categoryInfo.name} />
       <Navigation />
 
       {/* Category Header */}

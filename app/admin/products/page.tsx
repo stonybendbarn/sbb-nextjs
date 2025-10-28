@@ -32,6 +32,11 @@ interface Product {
   length_inches: number | null;
   width_inches: number | null;
   height_inches: number | null;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
+  seo_meta_title?: string;
+  seo_meta_description?: string;
   updated_at: string;
 }
 
