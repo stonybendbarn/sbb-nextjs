@@ -12,6 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         id, name, category, size, price_cents, sale_price_cents, stock_status,
         images, description, shipping_cents, available_quantity, is_quantity_based, inc_products_page,
         estimated_weight_lbs, length_inches, width_inches, height_inches,
+        seo_title, seo_description, seo_keywords, seo_meta_title, seo_meta_description,
         updated_at
       FROM products 
       WHERE id = ${params.id}
@@ -49,7 +50,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       estimated_weight_lbs,
       length_inches,
       width_inches,
-      height_inches
+      height_inches,
+      seo_title,
+      seo_description,
+      seo_keywords,
+      seo_meta_title,
+      seo_meta_description
     } = body;
 
     // Validate required fields
@@ -77,6 +83,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         length_inches = ${length_inches || null},
         width_inches = ${width_inches || null},
         height_inches = ${height_inches || null},
+        seo_title = ${seo_title || null},
+        seo_description = ${seo_description || null},
+        seo_keywords = ${seo_keywords || null},
+        seo_meta_title = ${seo_meta_title || null},
+        seo_meta_description = ${seo_meta_description || null},
         updated_at = NOW()
       WHERE id = ${params.id}
       RETURNING *

@@ -24,6 +24,11 @@ type Product = {
   shipping_cents: number | null;
   available_quantity: number;
   is_quantity_based: boolean;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
+  seo_meta_title?: string;
+  seo_meta_description?: string;
 };
 
 const categories = [

@@ -8,9 +8,29 @@ import "./globals.css"
 import { CartProvider } from "@/components/cart-context";
 
 export const metadata: Metadata = {
-  title: "Stony Bend Barn - Handcrafted Woodworking",
-  description: "Custom woodworking and handcrafted wood products including cutting boards, furniture, and more.",
-  generator: "v0.app",
+  title: "Stony Bend Barn - Handcrafted Woodworking & Custom Furniture",
+  description: "Premium handcrafted wood products including cutting boards, game boards, furniture, and custom woodworking. Each piece is artisan-crafted from select hardwoods at Stony Bend Barn.",
+  keywords: "handcrafted woodworking, custom furniture, cutting boards, game boards, artisan wood products, premium hardwood, Stony Bend Barn",
+  authors: [{ name: "Stony Bend Barn" }],
+  creator: "Stony Bend Barn",
+  publisher: "Stony Bend Barn",
+  robots: "index, follow",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://stonybendbarn.com",
+    siteName: "Stony Bend Barn",
+    title: "Stony Bend Barn - Handcrafted Woodworking & Custom Furniture",
+    description: "Premium handcrafted wood products including cutting boards, game boards, furniture, and custom woodworking. Each piece is artisan-crafted from select hardwoods at Stony Bend Barn.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Stony Bend Barn - Handcrafted Woodworking & Custom Furniture",
+    description: "Premium handcrafted wood products including cutting boards, game boards, furniture, and custom woodworking. Each piece is artisan-crafted from select hardwoods at Stony Bend Barn.",
+  },
+  verification: {
+    google: "your-google-verification-code", // Replace with actual verification code
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

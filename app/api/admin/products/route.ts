@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
         id, name, category, size, price_cents, sale_price_cents, stock_status,
         images, description, shipping_cents, available_quantity, is_quantity_based, inc_products_page,
         estimated_weight_lbs, length_inches, width_inches, height_inches,
+        seo_title, seo_description, seo_keywords, seo_meta_title, seo_meta_description,
         updated_at
       FROM products 
       ORDER BY 
@@ -100,7 +101,12 @@ export async function POST(req: NextRequest) {
       estimated_weight_lbs,
       length_inches,
       width_inches,
-      height_inches
+      height_inches,
+      seo_title,
+      seo_description,
+      seo_keywords,
+      seo_meta_title,
+      seo_meta_description
     } = body;
 
     // Validate required fields
@@ -120,12 +126,14 @@ export async function POST(req: NextRequest) {
       INSERT INTO products (
         id, name, category, size, price_cents, sale_price_cents, stock_status,
         images, description, shipping_cents, available_quantity, is_quantity_based, inc_products_page,
-        estimated_weight_lbs, length_inches, width_inches, height_inches
+        estimated_weight_lbs, length_inches, width_inches, height_inches,
+        seo_title, seo_description, seo_keywords, seo_meta_title, seo_meta_description
       ) VALUES (
         ${nextId}, ${name}, ${category}, ${size || ''}, ${price_cents}, ${sale_price_cents || null},
         ${stock_status}, ${JSON.stringify(images)}, ${description || ''}, ${shipping_cents || null},
         ${available_quantity}, ${is_quantity_based}, ${inc_products_page}, ${estimated_weight_lbs || null},
-        ${length_inches || null}, ${width_inches || null}, ${height_inches || null}
+        ${length_inches || null}, ${width_inches || null}, ${height_inches || null},
+        ${seo_title || null}, ${seo_description || null}, ${seo_keywords || null}, ${seo_meta_title || null}, ${seo_meta_description || null}
       )
       RETURNING *
     `;

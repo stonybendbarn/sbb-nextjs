@@ -28,6 +28,11 @@ interface Product {
   length_inches: number | null;
   width_inches: number | null;
   height_inches: number | null;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string;
+  seo_meta_title?: string;
+  seo_meta_description?: string;
   updated_at?: string;
 }
 
@@ -102,6 +107,11 @@ export default function ProductForm({ product, onSave, onCancel, loading = false
         length_inches: product.length_inches || null,
         width_inches: product.width_inches || null,
         height_inches: product.height_inches || null,
+        seo_title: product.seo_title || '',
+        seo_description: product.seo_description || '',
+        seo_keywords: product.seo_keywords || '',
+        seo_meta_title: product.seo_meta_title || '',
+        seo_meta_description: product.seo_meta_description || '',
         ...product
       });
     }
@@ -401,6 +411,66 @@ export default function ProductForm({ product, onSave, onCancel, loading = false
               placeholder="Enter product description"
               rows={4}
             />
+          </div>
+
+          {/* SEO Fields */}
+          <div className="space-y-4 pt-6 border-t">
+            <h3 className="text-lg font-semibold">SEO Settings (Optional)</h3>
+            <p className="text-sm text-muted-foreground">
+              These fields help search engines understand your product better. Leave blank to use auto-generated content.
+            </p>
+            
+            <div>
+              <Label htmlFor="seo_title">SEO Title</Label>
+              <Input
+                id="seo_title"
+                value={formData.seo_title}
+                onChange={(e) => handleInputChange('seo_title', e.target.value)}
+                placeholder="Custom title for search engines"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="seo_description">SEO Description</Label>
+              <Textarea
+                id="seo_description"
+                value={formData.seo_description}
+                onChange={(e) => handleInputChange('seo_description', e.target.value)}
+                placeholder="Extended description for search engines"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="seo_keywords">SEO Keywords</Label>
+              <Input
+                id="seo_keywords"
+                value={formData.seo_keywords}
+                onChange={(e) => handleInputChange('seo_keywords', e.target.value)}
+                placeholder="handcrafted, custom, hardwood, artisan"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="seo_meta_title">Meta Title</Label>
+              <Input
+                id="seo_meta_title"
+                value={formData.seo_meta_title}
+                onChange={(e) => handleInputChange('seo_meta_title', e.target.value)}
+                placeholder="Custom meta title for HTML head"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="seo_meta_description">Meta Description</Label>
+              <Textarea
+                id="seo_meta_description"
+                value={formData.seo_meta_description}
+                onChange={(e) => handleInputChange('seo_meta_description', e.target.value)}
+                placeholder="Custom meta description for HTML head"
+                rows={2}
+              />
+            </div>
           </div>
 
           {/* Images */}
