@@ -1,6 +1,8 @@
 // Products folder
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
+import ProductCategoryNavigation from "@/components/product-category-navigation"
+import { ShoppingBag } from "lucide-react"
 import Link from "next/link"
 
 const productCategories = [
@@ -55,6 +57,9 @@ export default function ProductsPage() {
       <section className="pt-32 md:pt-40 pb-12 md:pb-16 bg-accent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <ShoppingBag className="h-8 w-8 text-primary" />
+            </div>
             <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-foreground mb-6 text-balance">
               Our Products
             </h1>
@@ -68,6 +73,7 @@ export default function ProductsPage() {
       {/* Products Grid */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <ProductCategoryNavigation showAllProducts={false} />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {productCategories.map((category) => (
               <Link
