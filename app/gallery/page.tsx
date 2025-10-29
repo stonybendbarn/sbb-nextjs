@@ -245,11 +245,9 @@ export default function GalleryPage() {
                     .map((item) => (
                       <div key={item.id} className="group cursor-pointer">
                         <div className="relative aspect-square overflow-hidden rounded-lg bg-muted mb-4">
-                          <img
-                            src={`/.jpg?height=600&width=600&query=${item.image}`}
-                            alt={item.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
+                          <div className="w-full h-full flex items-center justify-center bg-muted">
+                            <span className="text-muted-foreground text-sm px-4 text-center">{item.image}</span>
+                          </div>
                           <Badge
                             className={`absolute top-4 right-4 ${
                               item.status === "Sold"

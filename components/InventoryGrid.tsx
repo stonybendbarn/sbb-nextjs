@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Images as ImagesIcon, Package } from "lucide-react";
 import AddToCartButton from "@/components/add-to-cart-button";
-import { useState, useCallback, KeyboardEvent } from "react";
+import { useState, useCallback, KeyboardEvent, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 export const dynamic = "force-dynamic";
 
@@ -59,6 +59,11 @@ function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string
   const hasMultiple = safeImages.length > 1;
   const [idx, setIdx] = useState(0);
 
+  // Reset index when images array changes
+  useEffect(() => {
+    setIdx(0);
+  }, [safeImages.length]);
+
   // wrap around
   const next = useCallback(() => {
     setIdx((i) => (i + 1) % (safeImages.length || 1));
@@ -75,17 +80,22 @@ function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string
     if (e.key === "ArrowLeft")  { e.preventDefault(); prev(); }
   };
 
+  // Ensure image path starts with / for absolute paths
+  const getImageSrc = (imagePath: string) => {
+    return imagePath.startsWith('/') ? imagePath : `/${imagePath}`
+  }
+
   return (
     <div
       className="relative aspect-[4/3] overflow-hidden bg-muted rounded-md"
       tabIndex={0}
       onKeyDown={onKeyDown}
     >
-      {safeImages.length ? (
+      {safeImages.length && safeImages[idx] ? (
         <Image
-          key={safeImages[idx]}               // force re-render when image changes
-          src={safeImages[idx]}
-          alt={alt}
+          key={`${idx}-${getImageSrc(safeImages[idx])}`}               // force re-render when image or index changes
+          src={getImageSrc(safeImages[idx])}
+          alt={`${alt} - Image ${idx + 1}`}
           fill
           className="object-contain select-none"
           sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
@@ -172,7 +182,19 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
                 const isInStock= status === "in stock";
                 const canBuy   = (isInStock || isOnSale) && (!item.is_quantity_based || item.available_quantity > 0);
 				const priceForCart = isOnSale && item.sale_price_cents ? item.sale_price_cents : item.price_cents;
-                const images   = item.images ?? [];
+                
+                // Handle images - Vercel Postgres returns JSONB as parsed JavaScript values
+                let images: string[] = []
+                if (Array.isArray(item.images)) {
+                  images = item.images.filter(img => img && typeof img === 'string')
+                } else if (typeof item.images === 'string') {
+                  try {
+                    const parsed = JSON.parse(item.images)
+                    images = Array.isArray(parsed) ? parsed.filter(img => img && typeof img === 'string') : []
+                  } catch (e) {
+                    images = []
+                  }
+                }
 
                 return (
                   <Card key={item.id} className="overflow-hidden flex flex-col">
