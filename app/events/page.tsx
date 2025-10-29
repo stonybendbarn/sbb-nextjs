@@ -6,8 +6,30 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, MapPin, Clock, Users } from "lucide-react"
+import type { Metadata } from "next"
 
-const upcomingEvents = [
+type Event = {
+  id: number
+  title: string
+  date: string
+  time: string
+  location: string
+  address: string
+  description: string
+  type: string
+  image: string
+  spots?: string
+  price?: string
+}
+
+export const metadata: Metadata = {
+  title: "Events & Workshops | Stony Bend Barn",
+  description:
+    "Join us at craft fairs, markets, and hands-on workshops. Learn woodworking skills or find Stony Bend Barn in your community.",
+  keywords: "woodworking events, craft fairs, workshops, woodworking classes, Stony Bend Barn events",
+}
+
+const upcomingEvents: Event[] = [
   {
     id: 1,
     title: "Christmas Event",
@@ -22,7 +44,13 @@ const upcomingEvents = [
   },
 ]
 
-const pastEvents = [
+const pastEvents: Array<{
+  id: number
+  title: string
+  date: string
+  description: string
+  image: string
+}> = [
   {
     id: 1,
     title: "Hasentree Fall Market",
@@ -65,11 +93,9 @@ export default function EventsPage() {
             {upcomingEvents.map((event) => (
               <Card key={event.id} className="overflow-hidden flex flex-col">
                 <div className="relative aspect-[16/9] overflow-hidden bg-muted">
-                  <img
-                    src={`/.jpg?height=400&width=600&query=${event.image}`}
-                    alt={event.title}
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                    <span className="text-muted-foreground text-sm px-4 text-center">{event.image}</span>
+                  </div>
                   <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">{event.type}</Badge>
                 </div>
                 <CardHeader>
@@ -156,11 +182,9 @@ export default function EventsPage() {
             {pastEvents.map((event) => (
               <div key={event.id} className="group">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-muted mb-4">
-                  <img
-                    src={`/.jpg?height=400&width=500&query=${event.image}`}
-                    alt={event.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  <div className="w-full h-full flex items-center justify-center bg-muted">
+                    <span className="text-muted-foreground text-sm px-4 text-center">{event.image}</span>
+                  </div>
                 </div>
                 <h3 className="font-serif text-xl font-semibold text-foreground mb-2">{event.title}</h3>
                 <p className="text-sm text-muted-foreground mb-2">{event.date}</p>
