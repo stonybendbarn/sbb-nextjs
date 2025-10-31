@@ -61,6 +61,14 @@ export function Footer() {
                   Custom Orders
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/testimonials"
+                  className="text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors"
+                >
+                  Testimonials
+                </Link>
+              </li>
             </ul>
           </div>
 

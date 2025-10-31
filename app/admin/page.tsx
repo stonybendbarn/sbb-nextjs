@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminNavigation } from "@/components/admin-navigation";
 import { Footer } from "@/components/footer";
-import { ShoppingCart, Package, Settings, ArrowRight } from "lucide-react";
+import { ShoppingCart, Package, Settings, ArrowRight, MessageSquare } from "lucide-react";
 import Link from "next/link";
 
 export default function AdminDashboard() {
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Orders Management */}
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader>
@@ -112,6 +112,33 @@ export default function AdminDashboard() {
                   <Link href="/admin/products">
                     <Button className="w-full bg-green-600 hover:bg-green-700">
                       Manage Products
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              {/* Testimonials Management */}
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <MessageSquare className="h-6 w-6 text-purple-600" />
+                    Testimonials
+                  </CardTitle>
+                  <CardDescription>
+                    Manage customer testimonials and reviews
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ul className="text-sm text-muted-foreground space-y-2">
+                    <li>• Add and edit testimonials</li>
+                    <li>• Link testimonials to products</li>
+                    <li>• Approve and feature testimonials</li>
+                    <li>• Control display order</li>
+                  </ul>
+                  <Link href="/admin/testimonials">
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                      Manage Testimonials
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
