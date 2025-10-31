@@ -127,7 +127,7 @@ export default async function HomePage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <Testimonials
             testimonials={testimonials}
-            maxDisplay={4}
+            maxDisplay={6}
             title="What Our Customers Say"
             description="See what others are saying about our handcrafted pieces"
             variant="carousel"
