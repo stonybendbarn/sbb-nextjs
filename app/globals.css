@@ -126,3 +126,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide scrollbar for carousel */
+@layer utilities {
+  .overflow-x-auto::-webkit-scrollbar {
+    display: none;
+  }
+}

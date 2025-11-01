@@ -13,6 +13,8 @@ import furniture from "@/public/images/furniture/tab-mah-map-ebo.jpeg";
 import barWare from "@/public/images/bar-ware/chaos-lazysusan.jpeg";
 import outdoorItems from "@/public/images/outdoor-items/IMG_6584.jpeg";
 import laserEngraving from "@/public/images/laser-engraving/asheville.jpeg";
+import { Testimonials } from "@/components/testimonials";
+import { fetchTestimonials } from "@/lib/testimonials-data";
 
 type Card = { name: string; slug: string; image: StaticImageData };
 
@@ -26,7 +28,9 @@ const featured: Card[] = [
   { name: "Outdoor Items", slug: "outdoor-items", image: outdoorItems },  
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const testimonials = await fetchTestimonials();
+
   return (
     <div className="min-h-screen">
       <Navigation />
@@ -68,7 +72,7 @@ export default function HomePage() {
       </section>
 
       {/* About Section */}
-      <section className="py-16 md:py-24 bg-accent">
+      <section className="pt-16 md:pt-24 pb-8 md:pb-12 bg-accent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 md:mb-16">
             <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
@@ -114,6 +118,27 @@ export default function HomePage() {
                 life.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="pt-8 md:pt-12 pb-16 md:pb-24 bg-accent">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <Testimonials
+            testimonials={testimonials}
+            maxDisplay={6}
+            title="What Our Customers Say"
+            description="See what others are saying about our handcrafted pieces"
+            variant="carousel"
+          />
+          <div className="text-center mt-8">
+            <Button asChild variant="outline">
+              <Link href="/testimonials">
+                View All Testimonials
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

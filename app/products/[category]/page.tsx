@@ -8,6 +8,8 @@ import { notFound } from "next/navigation"
 import { sql } from "@vercel/postgres"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { StructuredData } from "@/components/StructuredData"
+import { Testimonials } from "@/components/testimonials"
+import { fetchTestimonials, getTestimonialsByCategory } from "@/lib/testimonials-data"
 import type { Metadata } from "next"
 
 // Category metadata for page headers
@@ -194,6 +196,10 @@ export default async function CategoryPage({ params }: { params: { category: str
     return "$" + (cents / 100).toLocaleString()
   }
 
+  // Get testimonials for this category from database
+  const allTestimonials = await fetchTestimonials()
+  const categoryTestimonials = getTestimonialsByCategory(params.category, allTestimonials)
+
   return (
     <div className="min-h-screen">
       <StructuredData products={products} category={params.category} categoryName={categoryInfo.name} />
@@ -275,6 +281,21 @@ export default async function CategoryPage({ params }: { params: { category: str
           )}
         </div>
       </section>
+
+      {/* Testimonials Section (only show if there are testimonials for this category) */}
+      {categoryTestimonials.length > 0 && (
+        <section className="py-16 md:py-24 bg-accent">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <Testimonials
+              testimonials={categoryTestimonials}
+              title="Customer Reviews"
+              description={`See what customers are saying about our ${categoryInfo.name.toLowerCase()}`}
+              variant="grid"
+              maxDisplay={3}
+            />
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-primary text-primary-foreground">

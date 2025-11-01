@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Images as ImagesIcon, Package } from "lucide-react";
 import AddToCartButton from "@/components/add-to-cart-button";
-import { useState, useCallback, KeyboardEvent, useEffect } from "react";
+import { useState, useCallback, KeyboardEvent, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 type Product = {
@@ -158,8 +159,38 @@ function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string
 
 
 export default function InventoryGrid({ products }: { products: Product[] }) {
+  const searchParams = useSearchParams();
+  const productIdParam = searchParams?.get("product") || null;
+  const productRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Find the product by ID to determine its category
+  const targetProduct = productIdParam 
+    ? products.find((p) => String(p.id) === String(productIdParam))
+    : null;
+
+  // Set default tab based on product category if product ID is in URL
+  const defaultTab = targetProduct ? targetProduct.category : "all";
+
+  // Scroll to product when component mounts if product ID is in URL
+  useEffect(() => {
+    if (productIdParam) {
+      const productRef = productRefs.current[productIdParam];
+      if (productRef) {
+        // Small delay to ensure DOM is ready and tab is switched
+        setTimeout(() => {
+          productRef.scrollIntoView({ behavior: "smooth", block: "start" });
+          // Highlight the product card briefly
+          productRef.classList.add("ring-2", "ring-primary", "ring-offset-2");
+          setTimeout(() => {
+            productRef.classList.remove("ring-2", "ring-primary", "ring-offset-2");
+          }, 2000);
+        }, 500);
+      }
+    }
+  }, [productIdParam]);
+
   return (
-    <Tabs defaultValue="all" className="w-full">
+    <Tabs defaultValue={defaultTab} className="w-full">
       <TabsList className="w-full justify-start overflow-x-auto flex-wrap h-auto gap-2 bg-transparent mb-8">
         {categories.map((cat) => (
           <TabsTrigger key={cat.value} value={cat.value} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -170,11 +201,22 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
 
       {categories.map((cat) => {
         const filtered = cat.value === "all" ? products : products.filter((p) => p.category === cat.value);
+        
+        // Within each category, ensure target product appears first when linked from testimonial
+        const sortedFiltered = targetProduct && cat.value === targetProduct.category
+          ? [...filtered].sort((a, b) => {
+              const aIsTarget = String(a.id) === String(productIdParam);
+              const bIsTarget = String(b.id) === String(productIdParam);
+              if (aIsTarget) return -1;
+              if (bIsTarget) return 1;
+              return 0; // Maintain original order for non-target products
+            })
+          : filtered;
 
         return (
           <TabsContent key={cat.value} value={cat.value} className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {filtered.map((item) => {
+              {sortedFiltered.map((item) => {
                 const status = (item.stock_status || "").toLowerCase();
 				const hasSalePrice = item.sale_price_cents != null && item.sale_price_cents < item.price_cents;
 				const isOnSale = status === "on sale" || hasSalePrice;
@@ -196,8 +238,19 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
                   }
                 }
 
+                const isTargetProduct = productIdParam && String(item.id) === String(productIdParam);
+                const itemId = String(item.id);
+
                 return (
-                  <Card key={item.id} className="overflow-hidden flex flex-col">
+                  <Card 
+                    key={item.id} 
+                    ref={(el) => {
+                      if (isTargetProduct) {
+                        productRefs.current[itemId] = el;
+                      }
+                    }}
+                    className={`overflow-hidden flex flex-col ${isTargetProduct ? "ring-2 ring-primary ring-offset-2" : ""}`}
+                  >
                     <div className="relative">
                       <InventoryImageCarousel images={images} alt={item.name} />
                       <Badge className={`absolute top-4 right-4 ${isOnSale ? SALE_STYLES[SALE_THEME].badge : "bg-secondary text-secondary-foreground"}`}>
@@ -263,7 +316,7 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
               })}
             </div>
 
-            {filtered.length === 0 && (
+            {sortedFiltered.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">No items currently in stock for this category.</p>
               </div>
