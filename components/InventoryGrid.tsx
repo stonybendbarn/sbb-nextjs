@@ -201,11 +201,22 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
 
       {categories.map((cat) => {
         const filtered = cat.value === "all" ? products : products.filter((p) => p.category === cat.value);
+        
+        // Within each category, ensure target product appears first when linked from testimonial
+        const sortedFiltered = targetProduct && cat.value === targetProduct.category
+          ? [...filtered].sort((a, b) => {
+              const aIsTarget = String(a.id) === String(productIdParam);
+              const bIsTarget = String(b.id) === String(productIdParam);
+              if (aIsTarget) return -1;
+              if (bIsTarget) return 1;
+              return 0; // Maintain original order for non-target products
+            })
+          : filtered;
 
         return (
           <TabsContent key={cat.value} value={cat.value} className="mt-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-              {filtered.map((item) => {
+              {sortedFiltered.map((item) => {
                 const status = (item.stock_status || "").toLowerCase();
 				const hasSalePrice = item.sale_price_cents != null && item.sale_price_cents < item.price_cents;
 				const isOnSale = status === "on sale" || hasSalePrice;
@@ -305,7 +316,7 @@ export default function InventoryGrid({ products }: { products: Product[] }) {
               })}
             </div>
 
-            {filtered.length === 0 && (
+            {sortedFiltered.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">No items currently in stock for this category.</p>
               </div>
