@@ -8,24 +8,13 @@ import { sql } from "@vercel/postgres";
 export const staticTestimonials: Testimonial[] = [
   {
     id: "static-1",
-    customer_name: "Brian M",
+    customer_name: "Dolores",
     testimonial_text:
-      "The butcher block table exceeded all expectations. The quality of the wood and attention to detail is outstanding. It's both beautiful and functional - exactly what we were looking for.",
+      "The coasters are beautiful. I play cards and the one coaster had a diamond shape that really caught my eye. The others are great too!",
     rating: 5,
-    product_id: "1237",
-    product_name: "Butcher Block Table",
-    product_category: "furniture",
-    is_featured: true,
-  },
-  {
-    id: "static-2",
-    customer_name: "Jane M",
-    testimonial_text:
-      "We absolutely love our dining room table! The craftsmanship is exceptional and it's become the centerpiece of our home. Bill was so easy to work with throughout the entire custom process.",
-    rating: 5,
-    product_id: "1238",
-    product_name: "Dining Room Table",
-    product_category: "furniture",
+    product_id: "7",
+    product_name: "Canary Coasters",
+    product_category: "coasters",
     is_featured: true,
   },
   // Add more static testimonials here as you collect them
