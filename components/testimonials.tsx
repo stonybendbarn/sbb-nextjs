@@ -171,50 +171,7 @@ export function Testimonials({
   };
 
   const renderProductLink = (testimonial: Testimonial) => {
-    if (!showProductLink) return null;
-
-    // If product_id exists and has images, don't show link (images are shown instead)
-    const allImages = getAllImages(testimonial);
-    if (testimonial.product_id && allImages.length > 0) {
-      return null;
-    }
-
-    // If product_id exists, link to inventory page (where individual products are shown)
-    // Otherwise, link to category page if category exists
-    if (testimonial.product_id) {
-      return (
-        <div className="mt-3 pt-3 border-t border-border">
-          <Link
-            href={`/inventory?product=${testimonial.product_id}`}
-            className="text-sm text-primary hover:underline"
-          >
-            View {testimonial.product_name || "Product"} →
-          </Link>
-        </div>
-      );
-    }
-
-    if (testimonial.product_category) {
-      // Handle category slug conversion
-      let categorySlug = testimonial.product_category.toLowerCase();
-      // If it's already a slug (e.g., "furniture"), use it as-is
-      // If it's a display name (e.g., "Furniture"), convert to slug
-      if (!categorySlug.includes("-")) {
-        categorySlug = categorySlug.replace(/\s+/g, "-");
-      }
-      
-      return (
-        <div className="mt-3 pt-3 border-t border-border">
-          <Link
-            href={`/products/${categorySlug}`}
-            className="text-sm text-primary hover:underline"
-          >
-            View {testimonial.product_name || testimonial.product_category} →
-          </Link>
-        </div>
-      );
-    }
-
+    // Product links removed per user request
     return null;
   };
 
