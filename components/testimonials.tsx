@@ -80,31 +80,52 @@ export function Testimonials({
     );
   };
 
-  // Get all images for a testimonial (combines product_images and testimonial images)
+  // Get all images for a testimonial (combines testimonial images and product_images)
+  // Customer images (testimonial.images) come first, then product images
   const getAllImages = (testimonial: Testimonial): string[] => {
-    const productImages = testimonial.product_images || [];
     const testimonialImages = testimonial.images || [];
-    return [...productImages, ...testimonialImages];
+    const productImages = testimonial.product_images || [];
+    return [...testimonialImages, ...productImages];
   };
 
   // Image gallery component for testimonials
   function TestimonialImageGallery({ images, productName }: { images: string[]; productName?: string }) {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const hasMultiple = images.length > 1;
+    
+    // Filter out empty/undefined images and normalize paths
+    const safeImages = Array.isArray(images) ? images.filter(Boolean) : [];
+    const hasMultiple = safeImages.length > 1;
 
-    const next = () => setCurrentIndex((i) => (i + 1) % images.length);
-    const prev = () => setCurrentIndex((i) => (i - 1 + images.length) % images.length);
+    // Ensure image path starts with / for absolute paths
+    const getImageSrc = (imagePath: string) => {
+      return imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+    };
+
+    const next = () => setCurrentIndex((i) => (i + 1) % safeImages.length);
+    const prev = () => setCurrentIndex((i) => (i - 1 + safeImages.length) % safeImages.length);
+
+    // Reset index when images array changes
+    useEffect(() => {
+      setCurrentIndex(0);
+    }, [safeImages.length]);
 
     return (
       <div className="relative mt-4 aspect-[4/3] rounded-lg overflow-hidden bg-neutral-100 group">
-        <Image
-          src={images[currentIndex]}
-          alt={productName ? `${productName} - Image ${currentIndex + 1}` : `Testimonial image ${currentIndex + 1}`}
-          fill
-          className="object-cover"
-          sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-          priority={false}
-        />
+        {safeImages.length > 0 && safeImages[currentIndex] ? (
+          <Image
+            key={`${currentIndex}-${getImageSrc(safeImages[currentIndex])}`}
+            src={getImageSrc(safeImages[currentIndex])}
+            alt={productName ? `${productName} - Image ${currentIndex + 1}` : `Testimonial image ${currentIndex + 1}`}
+            fill
+            className="object-cover"
+            sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+            priority={false}
+          />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center text-muted-foreground">
+            <span className="px-3 text-sm">Image coming soon</span>
+          </div>
+        )}
         
         {hasMultiple && (
           <>
@@ -127,7 +148,7 @@ export function Testimonials({
             
             <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-xs text-white backdrop-blur">
               <Images className="h-3 w-3" />
-              {currentIndex + 1} / {images.length}
+              {currentIndex + 1} / {safeImages.length}
             </div>
           </>
         )}
@@ -150,50 +171,7 @@ export function Testimonials({
   };
 
   const renderProductLink = (testimonial: Testimonial) => {
-    if (!showProductLink) return null;
-
-    // If product_id exists and has images, don't show link (images are shown instead)
-    const allImages = getAllImages(testimonial);
-    if (testimonial.product_id && allImages.length > 0) {
-      return null;
-    }
-
-    // If product_id exists, link to inventory page (where individual products are shown)
-    // Otherwise, link to category page if category exists
-    if (testimonial.product_id) {
-      return (
-        <div className="mt-3 pt-3 border-t border-border">
-          <Link
-            href={`/inventory?product=${testimonial.product_id}`}
-            className="text-sm text-primary hover:underline"
-          >
-            View {testimonial.product_name || "Product"} →
-          </Link>
-        </div>
-      );
-    }
-
-    if (testimonial.product_category) {
-      // Handle category slug conversion
-      let categorySlug = testimonial.product_category.toLowerCase();
-      // If it's already a slug (e.g., "furniture"), use it as-is
-      // If it's a display name (e.g., "Furniture"), convert to slug
-      if (!categorySlug.includes("-")) {
-        categorySlug = categorySlug.replace(/\s+/g, "-");
-      }
-      
-      return (
-        <div className="mt-3 pt-3 border-t border-border">
-          <Link
-            href={`/products/${categorySlug}`}
-            className="text-sm text-primary hover:underline"
-          >
-            View {testimonial.product_name || testimonial.product_category} →
-          </Link>
-        </div>
-      );
-    }
-
+    // Product links removed per user request
     return null;
   };
 
