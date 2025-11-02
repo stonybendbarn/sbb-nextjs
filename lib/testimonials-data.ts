@@ -16,6 +16,7 @@ export const staticTestimonials: Testimonial[] = [
     product_name: "Canary Coasters",
     product_category: "coasters",
     is_featured: true,
+    customer_location: "Lima, NY",
   },
   // Add more static testimonials here as you collect them
 ];
@@ -27,7 +28,7 @@ export async function fetchTestimonials(): Promise<Testimonial[]> {
   try {
     const { rows } = await sql`
       SELECT 
-        id, customer_name, customer_email, testimonial_text, rating,
+        id, customer_name, customer_email, customer_location, testimonial_text, rating,
         product_id, product_name, product_category,
         is_featured, is_approved, display_order,
         created_at, updated_at
@@ -40,6 +41,7 @@ export async function fetchTestimonials(): Promise<Testimonial[]> {
       id: row.id,
       customer_name: row.customer_name,
       customer_email: row.customer_email || undefined,
+      customer_location: row.customer_location || undefined,
       testimonial_text: row.testimonial_text,
       rating: row.rating || undefined,
       product_id: row.product_id || undefined,

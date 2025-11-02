@@ -11,6 +11,7 @@ export interface Testimonial {
   id: string;
   customer_name: string;
   customer_email?: string;
+  customer_location?: string;
   testimonial_text: string;
   rating?: number;
   product_id?: string;
@@ -122,6 +123,9 @@ export function Testimonials({
                     <div>
                       <p className="font-semibold text-foreground">
                         {testimonial.customer_name}
+                        {testimonial.customer_location && (
+                          <span className="text-muted-foreground font-normal"> • {testimonial.customer_location}</span>
+                        )}
                       </p>
                       {testimonial.product_name && (
                         <p className="text-sm text-muted-foreground">
@@ -240,6 +244,9 @@ export function Testimonials({
                       <div>
                         <p className="font-semibold text-foreground">
                           {testimonial.customer_name}
+                          {testimonial.customer_location && (
+                            <span className="text-muted-foreground font-normal"> • {testimonial.customer_location}</span>
+                          )}
                         </p>
                         {testimonial.product_name && (
                           <p className="text-sm text-muted-foreground">
@@ -303,6 +310,9 @@ export function Testimonials({
                   <div>
                     <p className="font-semibold text-foreground">
                       {testimonial.customer_name}
+                      {testimonial.customer_location && (
+                        <span className="text-muted-foreground font-normal"> • {testimonial.customer_location}</span>
+                      )}
                     </p>
                     {testimonial.product_name && (
                       <p className="text-sm text-muted-foreground">
@@ -352,6 +362,9 @@ export function Testimonials({
                 <div>
                   <p className="font-semibold text-foreground text-lg">
                     {testimonial.customer_name}
+                    {testimonial.customer_location && (
+                      <span className="text-muted-foreground font-normal"> • {testimonial.customer_location}</span>
+                    )}
                   </p>
                   {testimonial.product_name && (
                     <p className="text-sm text-muted-foreground">
