@@ -1,12 +1,13 @@
 // app/api/testimonials/route.ts
-// Public API endpoint for customers to submit testimonials
+// Public API endpoint for customer testimonial submissions
 
 import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
+import { sendAdminTestimonialNotification } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
-// POST: Submit a new testimonial (public endpoint)
+// POST: Submit a new testimonial (public, requires approval)
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -20,31 +21,32 @@ export async function POST(req: NextRequest) {
       product_category,
     } = body;
 
-    // Validate required fields
-    if (!customer_name || !testimonial_text) {
+    // Validation
+    if (!customer_name || !testimonial_text || !rating) {
       return NextResponse.json(
-        { error: "Name and testimonial text are required" },
+        { error: "Customer name, testimonial text, and rating are required" },
         { status: 400 }
       );
     }
 
-    // Validate rating if provided
-    if (rating && (rating < 1 || rating > 5)) {
+    if (rating < 1 || rating > 5) {
       return NextResponse.json(
         { error: "Rating must be between 1 and 5" },
         { status: 400 }
       );
     }
 
-    // Validate email format if provided
-    if (customer_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 }
-      );
+    if (customer_email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(customer_email)) {
+        return NextResponse.json(
+          { error: "Invalid email format" },
+          { status: 400 }
+        );
+      }
     }
 
-    // Insert testimonial with is_approved set to false by default (requires admin approval)
+    // Insert testimonial with is_approved = false (requires admin approval)
     const { rows } = await sql`
       INSERT INTO testimonials (
         customer_name, customer_email, customer_location, testimonial_text, rating,
@@ -55,26 +57,43 @@ export async function POST(req: NextRequest) {
         ${customer_email || null},
         ${customer_location || null},
         ${testimonial_text},
-        ${rating || null},
+        ${rating},
         ${product_name || null},
         ${product_category || null},
         false,
         false,
         0
       )
-      RETURNING id, customer_name, testimonial_text, created_at
+      RETURNING id
     `;
 
-    return NextResponse.json({ 
-      success: true,
-      message: "Thank you for your testimonial! It will be reviewed before being published.",
-      testimonial: rows[0] 
-    }, { status: 201 });
+    // Send admin notification email (don't fail if email fails)
+    try {
+      await sendAdminTestimonialNotification({
+        customerName: customer_name,
+        customerEmail: customer_email || undefined,
+        customerLocation: customer_location || undefined,
+        testimonialText: testimonial_text,
+        rating: rating,
+        productName: product_name || undefined,
+        productCategory: product_category || undefined,
+        testimonialId: rows[0].id,
+      });
+    } catch (emailError) {
+      console.error("Failed to send testimonial notification email:", emailError);
+      // Don't fail the submission if email fails
+    }
+
+    return NextResponse.json({
+      message: "Testimonial submitted successfully",
+      testimonial: { id: rows[0].id },
+    });
   } catch (error) {
     console.error("Error submitting testimonial:", error);
-    return NextResponse.json({ 
-      error: "Failed to submit testimonial. Please try again later." 
-    }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to submit testimonial" },
+      { status: 500 }
+    );
   }
 }
 

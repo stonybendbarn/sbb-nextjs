@@ -32,3 +32,4 @@ CREATE INDEX IF NOT EXISTS idx_testimonials_display_order ON testimonials(displa
 -- CREATE INDEX IF NOT EXISTS idx_testimonials_product_fk ON testimonials(product_id);
 -- Note: We're not using foreign key constraint to allow flexibility for static testimonials
 
+

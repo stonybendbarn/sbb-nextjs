@@ -1,50 +1,34 @@
 // components/testimonials-filter.tsx
-// Client component for filtering testimonials by category
 
 "use client";
 
-import { Testimonial } from "./testimonials";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 
 const categories = [
-  { value: "all", label: "All Categories" },
+  { value: "all", label: "All Products" },
   { value: "cutting-boards", label: "Cutting Boards" },
+  { value: "game-boards", label: "Game Boards" },
   { value: "cheese-boards", label: "Cheese Boards" },
   { value: "coasters", label: "Coasters" },
-  { value: "bar-ware", label: "Bar Ware" },
-  { value: "furniture", label: "Furniture" },
-  { value: "game-boards", label: "Game Boards" },
   { value: "outdoor-items", label: "Outdoor Items" },
+  { value: "furniture", label: "Furniture" },
+  { value: "bar-ware", label: "Bar Ware" },
   { value: "laser-engraving", label: "Laser Engraving" },
   { value: "montessori", label: "Montessori" },
   { value: "barn-finds", label: "Barn Finds!" },
 ];
 
 interface TestimonialsFilterProps {
-  testimonials: Testimonial[];
-  filteredTestimonials: Testimonial[];
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
 }
 
-export function TestimonialsFilter({ 
-  testimonials, 
-  filteredTestimonials, 
-  selectedCategory,
-  onCategoryChange 
-}: TestimonialsFilterProps) {
+export function TestimonialsFilter({ selectedCategory, onCategoryChange }: TestimonialsFilterProps) {
   return (
-    <div className="mb-8 max-w-md mx-auto">
-      <Label htmlFor="category-filter" className="text-sm font-medium mb-2 block">
-        Filter by Product Category
-      </Label>
-      <Select
-        value={selectedCategory}
-        onValueChange={onCategoryChange}
-      >
-        <SelectTrigger id="category-filter">
-          <SelectValue placeholder="Select a category" />
+    <div className="mb-8 flex justify-center">
+      <Select value={selectedCategory} onValueChange={onCategoryChange}>
+        <SelectTrigger className="w-full max-w-xs">
+          <SelectValue placeholder="Filter by product category" />
         </SelectTrigger>
         <SelectContent>
           {categories.map((category) => (
@@ -54,11 +38,6 @@ export function TestimonialsFilter({
           ))}
         </SelectContent>
       </Select>
-      {filteredTestimonials.length !== testimonials.length && (
-        <p className="text-sm text-muted-foreground mt-2">
-          Showing {filteredTestimonials.length} of {testimonials.length} testimonials
-        </p>
-      )}
     </div>
   );
 }

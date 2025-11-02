@@ -3,8 +3,9 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, Quote, ChevronLeft, ChevronRight, Images } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useRef, useEffect, useCallback } from "react";
 
 export interface Testimonial {
@@ -17,6 +18,8 @@ export interface Testimonial {
   product_id?: string;
   product_name?: string;
   product_category?: string;
+  images?: string[]; // Testimonial-specific images
+  product_images?: string[]; // Images from the product if product_id exists
   is_featured?: boolean;
   created_at?: string;
 }
@@ -25,6 +28,7 @@ interface TestimonialsProps {
   testimonials: Testimonial[];
   maxDisplay?: number;
   showProductLink?: boolean;
+  showImages?: boolean;
   title?: string;
   description?: string;
   variant?: "default" | "compact" | "grid" | "carousel";
@@ -34,14 +38,25 @@ export function Testimonials({
   testimonials,
   maxDisplay,
   showProductLink = true,
+  showImages = true,
   title,
   description,
   variant = "default",
 }: TestimonialsProps) {
-  // Filter approved testimonials and limit display
-  const displayTestimonials = testimonials
-    .filter((t) => t.is_featured !== false)
-    .slice(0, maxDisplay || testimonials.length);
+  // Filter out invalid testimonials (missing required fields)
+  let displayTestimonials = testimonials.filter((t) => 
+    t.id && 
+    t.customer_name && 
+    t.testimonial_text
+  );
+  
+  // Only filter by is_featured if maxDisplay is set (e.g., on home page)
+  // On the full testimonials page, show all approved testimonials
+  if (maxDisplay) {
+    displayTestimonials = displayTestimonials
+      .filter((t) => t.is_featured !== false)
+      .slice(0, maxDisplay);
+  }
 
   if (displayTestimonials.length === 0) {
     return null;
@@ -65,8 +80,83 @@ export function Testimonials({
     );
   };
 
+  // Get all images for a testimonial (combines product_images and testimonial images)
+  const getAllImages = (testimonial: Testimonial): string[] => {
+    const productImages = testimonial.product_images || [];
+    const testimonialImages = testimonial.images || [];
+    return [...productImages, ...testimonialImages];
+  };
+
+  // Image gallery component for testimonials
+  function TestimonialImageGallery({ images, productName }: { images: string[]; productName?: string }) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const hasMultiple = images.length > 1;
+
+    const next = () => setCurrentIndex((i) => (i + 1) % images.length);
+    const prev = () => setCurrentIndex((i) => (i - 1 + images.length) % images.length);
+
+    return (
+      <div className="relative mt-4 aspect-[4/3] rounded-lg overflow-hidden bg-neutral-100 group">
+        <Image
+          src={images[currentIndex]}
+          alt={productName ? `${productName} - Image ${currentIndex + 1}` : `Testimonial image ${currentIndex + 1}`}
+          fill
+          className="object-cover"
+          sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+          priority={false}
+        />
+        
+        {hasMultiple && (
+          <>
+            <button
+              type="button"
+              onClick={prev}
+              aria-label="Previous image"
+              className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white opacity-0 shadow-md transition-opacity duration-200 focus:opacity-100 group-hover:opacity-100"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={next}
+              aria-label="Next image"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-1.5 text-white opacity-0 shadow-md transition-opacity duration-200 focus:opacity-100 group-hover:opacity-100"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            
+            <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-xs text-white backdrop-blur">
+              <Images className="h-3 w-3" />
+              {currentIndex + 1} / {images.length}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  const renderTestimonialImages = (testimonial: Testimonial) => {
+    if (!showImages) return null;
+    
+    const allImages = getAllImages(testimonial);
+    if (allImages.length === 0) return null;
+    
+    // If product_id exists and there are images, show images instead of link
+    if (testimonial.product_id && allImages.length > 0) {
+      return <TestimonialImageGallery images={allImages} productName={testimonial.product_name} />;
+    }
+
+    return null;
+  };
+
   const renderProductLink = (testimonial: Testimonial) => {
     if (!showProductLink) return null;
+
+    // If product_id exists and has images, don't show link (images are shown instead)
+    const allImages = getAllImages(testimonial);
+    if (testimonial.product_id && allImages.length > 0) {
+      return null;
+    }
 
     // If product_id exists, link to inventory page (where individual products are shown)
     // Otherwise, link to category page if category exists
@@ -135,6 +225,8 @@ export function Testimonials({
                     </div>
                     {renderStars(testimonial.rating)}
                   </div>
+                  {renderTestimonialImages(testimonial)}
+                  {renderProductLink(testimonial)}
                 </div>
               </div>
             </CardContent>
@@ -254,6 +346,7 @@ export function Testimonials({
                           </p>
                         )}
                       </div>
+                      {renderTestimonialImages(testimonial)}
                       {renderProductLink(testimonial)}
                     </div>
                   </CardContent>
@@ -320,6 +413,7 @@ export function Testimonials({
                       </p>
                     )}
                   </div>
+                  {renderTestimonialImages(testimonial)}
                   {renderProductLink(testimonial)}
                 </div>
               </CardContent>
@@ -374,6 +468,7 @@ export function Testimonials({
                 </div>
                 {renderStars(testimonial.rating)}
               </div>
+              {renderTestimonialImages(testimonial)}
               {renderProductLink(testimonial)}
             </CardContent>
           </Card>

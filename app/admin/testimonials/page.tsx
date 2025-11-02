@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { AdminNavigation } from "@/components/admin-navigation";
 import { Footer } from "@/components/footer";
-import { Plus, Edit, Trash2, Star, MessageSquare } from "lucide-react";
+import { Plus, Edit, Trash2, Star, MessageSquare, X } from "lucide-react";
 
 interface Testimonial {
   id: string;
@@ -58,10 +58,12 @@ export default function AdminTestimonialsPage() {
     product_id: '',
     product_name: '',
     product_category: '',
+    images: [] as string[],
     is_featured: false,
     is_approved: true,
     display_order: 0,
   });
+  const [imageUrlInput, setImageUrlInput] = useState('');
 
   useEffect(() => {
     fetchTestimonials();
@@ -108,6 +110,9 @@ export default function AdminTestimonialsPage() {
         alert(editingTestimonial ? 'Testimonial updated successfully!' : 'Testimonial added successfully!');
         resetForm();
         fetchTestimonials();
+        
+        // Scroll to top after successful save
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         const error = await response.json();
         alert(`Failed to save testimonial: ${error.error}`);
@@ -130,11 +135,40 @@ export default function AdminTestimonialsPage() {
       product_id: testimonial.product_id || '',
       product_name: testimonial.product_name || '',
       product_category: testimonial.product_category || '',
+      images: (testimonial as any).images && Array.isArray((testimonial as any).images) ? (testimonial as any).images : [],
       is_featured: testimonial.is_featured || false,
       is_approved: testimonial.is_approved !== false,
       display_order: testimonial.display_order || 0,
     });
     setShowAddForm(true);
+    
+    // Scroll to form after a brief delay to ensure it's rendered
+    setTimeout(() => {
+      const formElement = document.getElementById('testimonial-form');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  };
+
+  const addImageUrl = () => {
+    const trimmed = imageUrlInput.trim();
+    if (trimmed && !formData.images.includes(trimmed)) {
+      try {
+        new URL(trimmed); // Basic URL validation
+        setFormData({ ...formData, images: [...formData.images, trimmed] });
+        setImageUrlInput('');
+      } catch {
+        alert('Please enter a valid URL');
+      }
+    }
+  };
+
+  const removeImageUrl = (index: number) => {
+    setFormData({
+      ...formData,
+      images: formData.images.filter((_, i) => i !== index),
+    });
   };
 
   const handleDelete = async (testimonialId: string) => {
@@ -167,10 +201,12 @@ export default function AdminTestimonialsPage() {
       product_id: '',
       product_name: '',
       product_category: '',
+      images: [],
       is_featured: false,
       is_approved: true,
       display_order: 0,
     });
+    setImageUrlInput('');
     setEditingTestimonial(null);
     setShowAddForm(false);
   };
@@ -232,7 +268,7 @@ export default function AdminTestimonialsPage() {
           <div className="max-w-6xl mx-auto">
             {/* Add/Edit Form */}
             {showAddForm && (
-              <Card className="mb-8">
+              <Card id="testimonial-form" className="mb-8">
                 <CardHeader>
                   <CardTitle>
                     {editingTestimonial ? 'Edit Testimonial' : 'Add New Testimonial'}
@@ -343,6 +379,51 @@ export default function AdminTestimonialsPage() {
                             </SelectContent>
                           </Select>
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Images */}
+                    <div className="space-y-4 border-t pt-4">
+                      <h3 className="font-semibold">Images (Optional)</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Add image URLs manually. You can download, process, and upload these images later.
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <Input
+                            value={imageUrlInput}
+                            onChange={(e) => setImageUrlInput(e.target.value)}
+                            placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
+                            className="flex-1"
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addImageUrl();
+                              }
+                            }}
+                          />
+                          <Button type="button" onClick={addImageUrl} variant="outline">
+                            Add Image
+                          </Button>
+                        </div>
+                        
+                        {formData.images.length > 0 && (
+                          <div className="space-y-2">
+                            {formData.images.map((image, index) => (
+                              <div key={index} className="flex items-center gap-2 p-2 border rounded">
+                                <span className="text-sm truncate flex-1">{image}</span>
+                                <Button
+                                  type="button"
+                                  onClick={() => removeImageUrl(index)}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
 

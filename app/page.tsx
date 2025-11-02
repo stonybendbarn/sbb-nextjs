@@ -131,6 +131,8 @@ export default async function HomePage() {
             title="What Our Customers Say"
             description="See what others are saying about our handcrafted pieces"
             variant="carousel"
+            showImages={false}
+            showProductLink={false}
           />
           <div className="text-center mt-8">
             <Button asChild variant="outline">
