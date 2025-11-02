@@ -247,6 +247,110 @@ export async function sendAdminOrderNotification(orderDetails: OrderDetails) {
   }
 }
 
+export interface TestimonialSubmission {
+  customerName: string;
+  customerEmail?: string;
+  customerLocation?: string;
+  testimonialText: string;
+  rating: number;
+  productName?: string;
+  productCategory?: string;
+  testimonialId: string;
+}
+
+export async function sendAdminTestimonialNotification(testimonial: TestimonialSubmission) {
+  const { customerName, customerEmail, customerLocation, testimonialText, rating, productName, productCategory, testimonialId } = testimonial;
+  
+  // Build product info if available
+  let productInfo = "";
+  if (productName || productCategory) {
+    productInfo = `
+      <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+        <h3 style="margin: 0 0 10px 0; color: #333;">Product Information</h3>
+        ${productName ? `<p style="margin: 5px 0;"><strong>Product:</strong> ${productName}</p>` : ''}
+        ${productCategory ? `<p style="margin: 5px 0;"><strong>Category:</strong> ${productCategory.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>` : ''}
+      </div>
+    `;
+  }
+
+  // Build customer info
+  let customerInfo = `
+    <p style="margin: 5px 0;"><strong>Customer:</strong> ${customerName}</p>
+  `;
+  if (customerLocation) {
+    customerInfo += `<p style="margin: 5px 0;"><strong>Location:</strong> ${customerLocation}</p>`;
+  }
+  if (customerEmail) {
+    customerInfo += `<p style="margin: 5px 0;"><strong>Email:</strong> ${customerEmail}</p>`;
+  }
+
+  // Build rating display
+  const stars = "⭐".repeat(rating);
+
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const recipientEmail = process.env.TESTIMONIAL_EMAIL || process.env.ORDER_EMAIL;
+    
+    if (!recipientEmail) {
+      console.error("❌ TESTIMONIAL_EMAIL or ORDER_EMAIL environment variable not set");
+      return;
+    }
+
+    await resend.emails.send({
+      from: process.env.FROM_EMAIL!,
+      to: recipientEmail,
+      subject: `New Testimonial Submitted - ${customerName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #333; border-bottom: 2px solid #8B4513; padding-bottom: 10px;">
+            New Testimonial Submitted
+          </h1>
+          
+          <p>A new testimonial has been submitted and requires your review before being published.</p>
+          
+          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">Customer Information</h3>
+            ${customerInfo}
+          </div>
+          
+          <div style="background-color: #fff8e1; padding: 15px; border-radius: 5px; margin: 15px 0;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">Rating</h3>
+            <p style="margin: 5px 0; font-size: 18px;">${stars} (${rating}/5)</p>
+          </div>
+          
+          <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 15px 0;">
+            <h3 style="margin: 0 0 10px 0; color: #333;">Testimonial</h3>
+            <p style="margin: 0; font-style: italic; line-height: 1.6;">"${testimonialText}"</p>
+          </div>
+          
+          ${productInfo}
+          
+          <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p style="margin: 0; color: #1976d2;"><strong>Action Required:</strong> This testimonial requires approval before it will appear on your website.</p>
+            <p style="margin: 10px 0 0 0;">
+              <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/admin/testimonials" 
+                 style="display: inline-block; background-color: #8B4513; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">
+                Review Testimonial
+              </a>
+            </p>
+          </div>
+          
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #ddd;">
+          <p style="font-size: 12px; color: #666; text-align: center;">
+            Testimonial ID: ${testimonialId}<br>
+            Stony Bend Barn - Handcrafted Woodworking
+          </p>
+        </div>
+      `,
+    });
+    
+    console.log(`✅ Admin testimonial notification sent to ${recipientEmail}`);
+  } catch (error) {
+    console.error("❌ Failed to send admin testimonial notification:", error);
+    throw error;
+  }
+}
+
 export async function sendConsolidatedShippingEmail(consolidatedDetails: ConsolidatedOrderDetails) {
   const { customerEmail, customerName, orders, trackingNumber } = consolidatedDetails;
   

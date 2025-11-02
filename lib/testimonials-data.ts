@@ -6,18 +6,19 @@ import { sql } from "@vercel/postgres";
 // This is the static data for immediate use
 // Later, you can fetch from database and merge with this
 export const staticTestimonials: Testimonial[] = [
-  {
-    id: "static-1",
-    customer_name: "Dolores",
-    testimonial_text:
-      "The coasters are beautiful. I play cards and the one coaster had a diamond shape that really caught my eye. The others are great too!",
-    rating: 5,
-    product_id: "7",
-    product_name: "Canary Coasters",
-    product_category: "coasters",
-    is_featured: true,
-  },
-  // Add more static testimonials here as you collect them
+  // Add static testimonials here as you collect them
+  // Example:
+  // {
+  //   id: "static-1",
+  //   customer_name: "Dolores",
+  //   testimonial_text: "The coasters are beautiful...",
+  //   rating: 5,
+  //   product_id: "7",
+  //   product_name: "Canary Coasters",
+  //   product_category: "coasters",
+  //   is_featured: true,
+  //   customer_location: "Lima, NY",
+  // },
 ];
 
 // Fetch testimonials from database and merge with static testimonials
@@ -27,8 +28,8 @@ export async function fetchTestimonials(): Promise<Testimonial[]> {
   try {
     const { rows } = await sql`
       SELECT 
-        id, customer_name, customer_email, testimonial_text, rating,
-        product_id, product_name, product_category,
+        id, customer_name, customer_email, customer_location, testimonial_text, rating,
+        product_id, product_name, product_category, images,
         is_featured, is_approved, display_order,
         created_at, updated_at
       FROM testimonials
@@ -36,42 +37,86 @@ export async function fetchTestimonials(): Promise<Testimonial[]> {
       ORDER BY display_order ASC, created_at DESC
     `;
     
-    dbTestimonials = rows.map((row) => ({
-      id: row.id,
-      customer_name: row.customer_name,
-      customer_email: row.customer_email || undefined,
-      testimonial_text: row.testimonial_text,
-      rating: row.rating || undefined,
-      product_id: row.product_id || undefined,
-      product_name: row.product_name || undefined,
-      product_category: row.product_category || undefined,
-      is_featured: row.is_featured || false,
-      created_at: row.created_at,
-    }));
+    // Fetch product images for testimonials with product_id
+    const productIds = [...new Set(rows.filter((r) => r.product_id).map((r) => r.product_id))];
+    const productImagesMap = new Map<string, string[]>();
+    
+    if (productIds.length > 0) {
+      try {
+        // Fetch products one at a time to get their images
+        for (const productId of productIds) {
+          try {
+            const productResult = await sql`
+              SELECT id, images
+              FROM products
+              WHERE id = ${productId}
+            `;
+            
+            if (productResult.rows.length > 0) {
+              const product = productResult.rows[0];
+              if (product.images && Array.isArray(product.images)) {
+                productImagesMap.set(String(product.id), product.images);
+              }
+            }
+          } catch (err) {
+            // Skip this product if there's an error
+            console.error(`Error fetching product ${productId}:`, err);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching product images:", error);
+        // Continue without product images
+      }
+    }
+    
+    dbTestimonials = rows.map((row) => {
+      const testimonialImages = row.images && Array.isArray(row.images) ? row.images : [];
+      const productImages = row.product_id ? (productImagesMap.get(String(row.product_id)) || []) : [];
+      
+      return {
+        id: row.id,
+        customer_name: row.customer_name,
+        customer_email: row.customer_email || undefined,
+        customer_location: row.customer_location || undefined,
+        testimonial_text: row.testimonial_text,
+        rating: row.rating || undefined,
+        product_id: row.product_id || undefined,
+        product_name: row.product_name || undefined,
+        product_category: row.product_category || undefined,
+        images: testimonialImages.length > 0 ? testimonialImages : undefined,
+        product_images: productImages.length > 0 ? productImages : undefined,
+        is_featured: row.is_featured || false,
+        display_order: row.display_order || 0,
+        created_at: row.created_at,
+      };
+    });
   } catch (error) {
     console.error("Error fetching testimonials from database:", error);
     // Continue with static testimonials if database fails
   }
   
   // Merge database and static testimonials
-  // Static testimonials come first, then database testimonials
-  // You can adjust this ordering if needed
   const allTestimonials = [...staticTestimonials, ...dbTestimonials];
   
-  // Sort by display_order (static ones have no display_order, so they'll appear first)
-  // Then by is_featured, then by created_at
-  return allTestimonials.sort((a, b) => {
-    // Featured items first
+  // Filter out any invalid testimonials (missing required fields)
+  const validTestimonials = allTestimonials.filter((t) => 
+    t.id && 
+    t.customer_name && 
+    t.testimonial_text
+  );
+  
+  // Sort by display_order (lower numbers first), then by is_featured, then by created_at
+  return validTestimonials.sort((a, b) => {
+    // First priority: display_order (lower numbers appear first)
+    const orderA = (a as any).display_order ?? 999;
+    const orderB = (b as any).display_order ?? 999;
+    if (orderA !== orderB) return orderA - orderB;
+    
+    // Second priority: Featured items first (within same display_order)
     if (a.is_featured && !b.is_featured) return -1;
     if (!a.is_featured && b.is_featured) return 1;
     
-    // Then by display_order if available (lower numbers first)
-    // Static testimonials don't have display_order, so they'll be after featured DB ones
-    const orderA = ('display_order' in a && typeof a.display_order === 'number') ? a.display_order : 999;
-    const orderB = ('display_order' in b && typeof b.display_order === 'number') ? b.display_order : 999;
-    if (orderA !== orderB) return orderA - orderB;
-    
-    // Finally by created_at (newest first)
+    // Third priority: Newest first (within same display_order and featured status)
     if (a.created_at && b.created_at) {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }

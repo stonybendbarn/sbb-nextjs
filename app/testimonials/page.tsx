@@ -2,7 +2,8 @@
 
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
-import { Testimonials } from "@/components/testimonials";
+import { TestimonialsClient } from "./testimonials-client";
+import { TestimonialSubmitForm } from "@/components/testimonial-submit-form";
 import { fetchTestimonials } from "@/lib/testimonials-data";
 import type { Metadata } from "next";
 
@@ -37,12 +38,14 @@ export default async function TestimonialsPage() {
       {/* Testimonials Section */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <Testimonials
-            testimonials={testimonials}
-            title=""
-            description=""
-            variant="default"
-          />
+          <TestimonialsClient initialTestimonials={testimonials} />
+        </div>
+      </section>
+
+      {/* Submission Form Section */}
+      <section className="py-16 md:py-24 bg-muted/50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <TestimonialSubmitForm />
         </div>
       </section>
 
@@ -50,4 +53,3 @@ export default async function TestimonialsPage() {
     </div>
   );
 }
-
