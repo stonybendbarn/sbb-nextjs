@@ -33,9 +33,11 @@ export async function fetchTestimonials(): Promise<Testimonial[]> {
         is_featured, is_approved, display_order,
         created_at, updated_at
       FROM testimonials
-      WHERE is_approved = true
+      WHERE is_approved IS TRUE
       ORDER BY display_order ASC, created_at DESC
     `;
+    
+    console.log(`[Testimonials] Fetched ${rows.length} approved testimonials from database`);
     
     // Fetch product images for testimonials with product_id
     const productIds = [...new Set(rows.filter((r) => r.product_id).map((r) => r.product_id))];
@@ -104,6 +106,8 @@ export async function fetchTestimonials(): Promise<Testimonial[]> {
     t.customer_name && 
     t.testimonial_text
   );
+  
+  console.log(`[Testimonials] Returning ${validTestimonials.length} valid testimonials (${allTestimonials.length - validTestimonials.length} filtered out)`);
   
   // Sort by display_order (lower numbers first), then by is_featured, then by created_at
   return validTestimonials.sort((a, b) => {
