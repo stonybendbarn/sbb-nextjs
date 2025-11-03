@@ -154,12 +154,22 @@ export default function AdminTestimonialsPage() {
   const addImageUrl = () => {
     const trimmed = imageUrlInput.trim();
     if (trimmed && !formData.images.includes(trimmed)) {
-      try {
-        new URL(trimmed); // Basic URL validation
+      // Accept both absolute URLs and relative paths (starting with /)
+      const isRelativePath = trimmed.startsWith('/');
+      const isAbsoluteUrl = trimmed.includes('://');
+      
+      if (isRelativePath || isAbsoluteUrl) {
         setFormData({ ...formData, images: [...formData.images, trimmed] });
         setImageUrlInput('');
-      } catch {
-        alert('Please enter a valid URL');
+      } else {
+        // Try to validate as absolute URL for other cases
+        try {
+          new URL(trimmed);
+          setFormData({ ...formData, images: [...formData.images, trimmed] });
+          setImageUrlInput('');
+        } catch {
+          alert('Please enter a valid URL or relative path (e.g., /images/category/image.jpg)');
+        }
       }
     }
   };
@@ -393,7 +403,7 @@ export default function AdminTestimonialsPage() {
                           <Input
                             value={imageUrlInput}
                             onChange={(e) => setImageUrlInput(e.target.value)}
-                            placeholder="Enter image URL (e.g., https://example.com/image.jpg)"
+                            placeholder="Enter image URL or path (e.g., /images/category/image.jpg or https://example.com/image.jpg)"
                             className="flex-1"
                             onKeyPress={(e) => {
                               if (e.key === 'Enter') {
