@@ -162,12 +162,8 @@ export function Testimonials({
     const allImages = getAllImages(testimonial);
     if (allImages.length === 0) return null;
     
-    // If product_id exists and there are images, show images instead of link
-    if (testimonial.product_id && allImages.length > 0) {
-      return <TestimonialImageGallery images={allImages} productName={testimonial.product_name} />;
-    }
-
-    return null;
+    // Show images if they exist (either from testimonial.images or product_images)
+    return <TestimonialImageGallery images={allImages} productName={testimonial.product_name} />;
   };
 
   const renderProductLink = (testimonial: Testimonial) => {
