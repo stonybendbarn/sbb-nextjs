@@ -34,7 +34,7 @@ const upcomingEvents: Event[] = [
   {
     id: 1,
     title: "Holiday Bazaar",
-    date: "Saturday, December 7, 2025",
+    date: "Monday, December 8, 2025",
     time: "4:00 PM - 7:00 PM",
     location: "Hasentree Clubhouse",
     address: "7305 Village Club Dr, Wake Forest, NC 27587",
