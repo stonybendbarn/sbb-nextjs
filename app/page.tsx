@@ -90,7 +90,7 @@ export default async function HomePage() {
               </div>
               <h3 className="font-serif text-2xl font-semibold text-foreground mb-4">Our Story</h3>
               <p className="text-muted-foreground leading-relaxed">
-                Founded with a passion for woodworking, Stony Bend Barn has been creating beautiful, functional pieces
+                Founded with a passion for woodworking, Stony Bend Barn has creates beautiful, functional pieces
                 for homes and businesses. Each item tells a story of dedication, skill, and love for the craft.
               </p>
             </div>
