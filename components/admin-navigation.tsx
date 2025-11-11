@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { Menu, X, Settings, Package, ShoppingCart, LogOut, Home, MessageSquare } from "lucide-react"
+import { Menu, X, Settings, Package, ShoppingCart, LogOut, Home, MessageSquare, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 
@@ -23,6 +23,7 @@ export function AdminNavigation() {
     { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
     { href: "/admin/products", label: "Products", icon: Package },
     { href: "/admin/testimonials", label: "Testimonials", icon: MessageSquare },
+    { href: "/admin/events", label: "Events", icon: Calendar },
   ]
 
   return (

@@ -33,3 +33,4 @@ CREATE INDEX IF NOT EXISTS idx_testimonials_display_order ON testimonials(displa
 -- Note: We're not using foreign key constraint to allow flexibility for static testimonials
 
 
+

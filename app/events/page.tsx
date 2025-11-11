@@ -1,5 +1,8 @@
 // app/events/page.tsx
 
+"use client";
+
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -7,76 +10,92 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Calendar, MapPin, Clock, Users, FileText, ExternalLink } from "lucide-react"
 import Image from "next/image"
-import type { Metadata } from "next"
 
 type Event = {
-  id: number
+  id: string
   title: string
-  date: string
-  time: string
-  location: string
-  address: string
-  description: string
+  date: string // YYYYMMDD format
+  time?: string
+  location?: string
+  address?: string
+  description?: string
   type?: string
-  image: string
+  image?: string
   spots?: string
   price?: string
 }
-
-export const metadata: Metadata = {
-  title: "Events & Workshops | Stony Bend Barn",
-  description:
-    "Join us at craft fairs, markets, and hands-on workshops. Learn woodworking skills or find Stony Bend Barn in your community.",
-  keywords: "woodworking events, craft fairs, workshops, woodworking classes, Stony Bend Barn events",
-}
-
-const upcomingEvents: Event[] = [
-  {
-    id: 1,
-    title: "Holiday Bazaar",
-    date: "Monday, December 8, 2025",
-    time: "4:00 PM - 7:00 PM",
-    location: "Hasentree Clubhouse",
-    address: "7305 Village Club Dr, Wake Forest, NC 27587",
-    description:
-      "Stony Bend Barn is proud to be one of the vendors invited to participate in the Hasentree Clubhouse's Holiday Bazaar. Hope to see you there as we will have plenty of stocking stuffers to choose from!",
-    image: "/images/events/2025_hasentree_holiday_bazaar.jpeg",
-  },
-  {
-    id: 2,
-    title: "Sip & Shop",
-    date: "Saturday, December 20, 2025",
-    time: "11:00 AM - 2:00 PM",
-    location: "TBD",
-    address: "2101 Stanton Hall Ct, Raleigh",
-    description:
-      "Join us as we will be one of many vendors as Brindledog Scents puts on their 3rd annual Christmas event. Just 5 days before Christmas, so be sure to stop by and get your last minute gifts!",
-    image: "/images/events/2025_brindledogscents.jpeg",
-  },
-]
 
 // Helper function to check if a file is a PDF
 function isPDF(path: string): boolean {
   return path.toLowerCase().endsWith('.pdf')
 }
 
-const pastEvents: Array<{
-  id: number
-  title: string
-  date: string
-  description: string
-  image: string
-}> = [
-  {
-    id: 1,
-    title: "Hasentree Fall Market",
-    date: "September 20, 2025",
-    description: "Beautiful weather helped make this event a continued success!",
-    image: "/images/events/Hasentree Fall Market Save the Date 2025.jpeg",
-  },
-]
+// Helper function to format YYYYMMDD to readable date
+function formatDate(dateStr: string): string {
+  if (!dateStr || dateStr.length !== 8) return dateStr;
+  const year = dateStr.substring(0, 4);
+  const month = dateStr.substring(4, 6);
+  const day = dateStr.substring(6, 8);
+  const date = new Date(`${year}-${month}-${day}`);
+  return date.toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+}
+
+// Helper function to check if event is past
+function isPastEvent(dateStr: string): boolean {
+  if (!dateStr || dateStr.length !== 8) return false;
+  const year = parseInt(dateStr.substring(0, 4));
+  const month = parseInt(dateStr.substring(4, 6)) - 1;
+  const day = parseInt(dateStr.substring(6, 8));
+  const eventDate = new Date(year, month, day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return eventDate < today;
+}
 
 export default function EventsPage() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch('/api/events');
+      if (response.ok) {
+        const data = await response.json();
+        setEvents(data.events || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Separate events into upcoming and past
+  const upcomingEvents = events.filter(event => !isPastEvent(event.date));
+  const pastEvents = events.filter(event => isPastEvent(event.date));
+
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <Navigation />
+        <div className="pt-32 md:pt-40 pb-12 md:pb-16 bg-accent">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p className="text-muted-foreground">Loading events...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen">
       <Navigation />
@@ -105,31 +124,42 @@ export default function EventsPage() {
           <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-12 text-center">
             Upcoming Events
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {upcomingEvents.map((event) => (
+          {upcomingEvents.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No upcoming events at this time. Check back soon!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
+              {upcomingEvents.map((event) => (
               <Card key={event.id} className="overflow-hidden flex flex-col h-full">
                 <div className="relative aspect-[4/5] overflow-hidden bg-muted flex items-center justify-center">
-                  {isPDF(event.image) ? (
-                    <a
-                      href={event.image}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full h-full flex flex-col items-center justify-center bg-muted hover:bg-muted/80 transition-colors group"
-                    >
-                      <FileText className="h-16 w-16 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
-                      <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
-                        View PDF
-                      </span>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground mt-2 group-hover:text-primary transition-colors" />
-                    </a>
+                  {event.image ? (
+                    isPDF(event.image) ? (
+                      <a
+                        href={event.image}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full h-full flex flex-col items-center justify-center bg-muted hover:bg-muted/80 transition-colors group"
+                      >
+                        <FileText className="h-16 w-16 text-muted-foreground mb-3 group-hover:text-primary transition-colors" />
+                        <span className="text-sm text-muted-foreground group-hover:text-primary transition-colors">
+                          View PDF
+                        </span>
+                        <ExternalLink className="h-4 w-4 text-muted-foreground mt-2 group-hover:text-primary transition-colors" />
+                      </a>
+                    ) : (
+                      <Image
+                        src={event.image}
+                        alt={event.title}
+                        fill
+                        className="object-contain"
+                        sizes="(min-width: 1024px) 50vw, 100vw"
+                      />
+                    )
                   ) : (
-                    <Image
-                      src={event.image}
-                      alt={event.title}
-                      fill
-                      className="object-contain"
-                      sizes="(min-width: 1024px) 50vw, 100vw"
-                    />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Calendar className="h-16 w-16 text-muted-foreground" />
+                    </div>
                   )}
                   {event.type && (
                     <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground z-10">{event.type}</Badge>
@@ -140,23 +170,33 @@ export default function EventsPage() {
                   <CardDescription className="space-y-2 pt-2">
                     <div className="flex items-center gap-2 text-foreground">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">{event.date}</span>
+                      <span className="font-medium">{formatDate(event.date)}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>{event.time}</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                      <div>
-                        <div className="font-medium text-foreground">{event.location}</div>
-                        <div className="text-sm">{event.address}</div>
+                    {event.time && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span>{event.time}</span>
                       </div>
-                    </div>
+                    )}
+                    {(event.location || event.address) && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <div>
+                          {event.location && (
+                            <div className="font-medium text-foreground">{event.location}</div>
+                          )}
+                          {event.address && (
+                            <div className="text-sm">{event.address}</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1">
-                  <p className="text-muted-foreground leading-relaxed">{event.description}</p>
+                  {event.description && (
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{event.description}</p>
+                  )}
                   {(event.spots || event.price) && (
                     <div className="mt-4 pt-4 border-t space-y-2">
                       {event.spots && (
@@ -181,8 +221,9 @@ export default function EventsPage() {
                   )}
                 </CardFooter>
               </Card>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -215,42 +256,56 @@ export default function EventsPage() {
       <section className="py-16 md:py-24 bg-accent">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-12 text-center">Past Events</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {pastEvents.map((event) => (
-              <div key={event.id} className="group">
-                <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-muted mb-4 flex items-center justify-center">
-                  {isPDF(event.image) ? (
-                    <a
-                      href={event.image}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full h-full flex flex-col items-center justify-center bg-muted hover:bg-muted/80 transition-colors group"
-                    >
-                      <FileText className="h-12 w-12 text-muted-foreground mb-2 group-hover:text-primary transition-colors" />
-                      <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                        View PDF
-                      </span>
-                    </a>
-                  ) : event.image.startsWith("/") ? (
-                    <Image
-                      src={event.image}
-                      alt={event.title}
-                      fill
-                      className="object-contain"
-                      sizes="(min-width: 768px) 33vw, 100vw"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-muted">
-                      <span className="text-muted-foreground text-sm px-4 text-center">{event.image}</span>
-                    </div>
+          {pastEvents.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No past events to display.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {pastEvents.map((event) => (
+                <div key={event.id} className="group">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-muted mb-4 flex items-center justify-center">
+                    {event.image ? (
+                      isPDF(event.image) ? (
+                        <a
+                          href={event.image}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full h-full flex flex-col items-center justify-center bg-muted hover:bg-muted/80 transition-colors group"
+                        >
+                          <FileText className="h-12 w-12 text-muted-foreground mb-2 group-hover:text-primary transition-colors" />
+                          <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                            View PDF
+                          </span>
+                        </a>
+                      ) : event.image.startsWith("/") ? (
+                        <Image
+                          src={event.image}
+                          alt={event.title}
+                          fill
+                          className="object-contain"
+                          sizes="(min-width: 768px) 33vw, 100vw"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-muted">
+                          <span className="text-muted-foreground text-sm px-4 text-center">{event.image}</span>
+                        </div>
+                      )
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-muted">
+                        <Calendar className="h-12 w-12 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="font-serif text-xl font-semibold text-foreground mb-2">{event.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">{formatDate(event.date)}</p>
+                  {event.description && (
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{event.description}</p>
                   )}
                 </div>
-                <h3 className="font-serif text-xl font-semibold text-foreground mb-2">{event.title}</h3>
-                <p className="text-sm text-muted-foreground mb-2">{event.date}</p>
-                <p className="text-muted-foreground leading-relaxed">{event.description}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
