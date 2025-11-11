@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminNavigation } from "@/components/admin-navigation";
 import { Footer } from "@/components/footer";
-import { ShoppingCart, Package, Settings, ArrowRight, MessageSquare } from "lucide-react";
+import { ShoppingCart, Package, Settings, ArrowRight, MessageSquare, Calendar } from "lucide-react";
 import Link from "next/link";
 
 export default function AdminDashboard() {
@@ -139,6 +139,33 @@ export default function AdminDashboard() {
                   <Link href="/admin/testimonials">
                     <Button className="w-full bg-purple-600 hover:bg-purple-700">
                       Manage Testimonials
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              {/* Events Management */}
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <Calendar className="h-6 w-6 text-orange-600" />
+                    Events Management
+                  </CardTitle>
+                  <CardDescription>
+                    Manage events, workshops, and markets
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <ul className="text-sm text-muted-foreground space-y-2">
+                    <li>• Add and edit events</li>
+                    <li>• Set dates and locations</li>
+                    <li>• Manage event details and images</li>
+                    <li>• Events automatically sort by date</li>
+                  </ul>
+                  <Link href="/admin/events">
+                    <Button className="w-full bg-orange-600 hover:bg-orange-700">
+                      Manage Events
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
