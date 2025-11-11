@@ -30,10 +30,10 @@ interface Event {
 // Helper function to format YYYYMMDD to readable date
 function formatDate(dateStr: string): string {
   if (!dateStr || dateStr.length !== 8) return dateStr;
-  const year = dateStr.substring(0, 4);
-  const month = dateStr.substring(4, 6);
-  const day = dateStr.substring(6, 8);
-  const date = new Date(`${year}-${month}-${day}`);
+  const year = parseInt(dateStr.substring(0, 4));
+  const month = parseInt(dateStr.substring(4, 6)) - 1; // Month is 0-indexed
+  const day = parseInt(dateStr.substring(6, 8));
+  const date = new Date(year, month, day);
   return date.toLocaleDateString('en-US', { 
     weekday: 'long', 
     year: 'numeric', 
@@ -47,13 +47,23 @@ function parseDateInput(dateInput: string): string {
   if (!dateInput) return '';
   // If already in YYYYMMDD format, return as is
   if (/^\d{8}$/.test(dateInput)) return dateInput;
-  // Try to parse as date and convert
-  const date = new Date(dateInput);
-  if (isNaN(date.getTime())) return '';
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}${month}${day}`;
+  
+  // Parse YYYY-MM-DD format manually to avoid timezone issues (from input[type="date"])
+  const ymdMatch = dateInput.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (ymdMatch) {
+    const [, year, month, day] = ymdMatch;
+    return `${year}${month}${day}`;
+  }
+  
+  // Parse MM/DD/YYYY format manually to avoid timezone issues
+  const mdyMatch = dateInput.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mdyMatch) {
+    const [, month, day, year] = mdyMatch;
+    return `${year}${month.padStart(2, '0')}${day.padStart(2, '0')}`;
+  }
+  
+  // If we can't parse it, return empty string (don't use Date constructor which has timezone issues)
+  return '';
 }
 
 // Helper function to convert YYYYMMDD to YYYY-MM-DD for input[type="date"]
