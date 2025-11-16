@@ -158,4 +158,3 @@ For questions or issues, check:
 - Database migration file at `lib/migrations/create-testimonials-table.sql`
 
 
-
