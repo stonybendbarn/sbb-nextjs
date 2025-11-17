@@ -60,11 +60,18 @@ function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string
   const hasMultiple = safeImages.length > 1;
   const [idx, setIdx] = useState(0);
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Reset index when images array changes
   useEffect(() => {
     setIdx(0);
   }, [safeImages.length]);
+
+  // Reset loaded state when image changes
+  useEffect(() => {
+    setImageLoaded(false);
+    setImageError(false);
+  }, [idx, safeImages[idx]]);
 
   // wrap around
   const next = useCallback(() => {
@@ -95,7 +102,7 @@ function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string
     >
       {safeImages.length && safeImages[idx] ? (
         imageError ? (
-          // Fallback to regular img tag if Next.js Image fails
+          // Fallback to regular img tag ONLY if Next.js Image fails
           <img
             src={getImageSrc(safeImages[idx])}
             alt={`${alt} - Image ${idx + 1}`}
@@ -103,6 +110,10 @@ function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string
             style={{ position: 'absolute', inset: 0 }}
             onError={() => {
               console.error('Image failed to load even with fallback:', getImageSrc(safeImages[idx]))
+            }}
+            onLoad={() => {
+              setImageLoaded(true)
+              setImageError(false)
             }}
           />
         ) : (
@@ -116,10 +127,13 @@ function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string
             priority={false}
             unoptimized={safeImages[idx]?.includes('metal_inset')}
             onError={(e) => {
-              console.error('Next.js Image failed, falling back to regular img:', getImageSrc(safeImages[idx]))
+              console.error('Next.js Image failed, falling back to regular img:', getImageSrc(safeImages[idx]), e)
               setImageError(true)
             }}
-            onLoad={() => setImageError(false)}
+            onLoad={() => {
+              setImageLoaded(true)
+              setImageError(false)
+            }}
           />
         )
       ) : (
