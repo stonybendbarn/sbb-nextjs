@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { ChevronLeft, ChevronRight, Images as ImagesIcon } from "lucide-react"
-import { useState, useCallback, KeyboardEvent } from "react"
+import { useState, useCallback, KeyboardEvent, useEffect } from "react"
 
 interface ProductImageCarouselProps {
   images: string[]
@@ -13,6 +13,14 @@ export function ProductImageCarousel({ images, alt }: ProductImageCarouselProps)
   const safeImages = Array.isArray(images) ? images.filter(Boolean) : []
   const hasMultiple = safeImages.length > 1
   const [idx, setIdx] = useState(0)
+  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
+
+  // Reset loaded state when image changes
+  useEffect(() => {
+    setImageLoaded(false)
+    setImageError(false)
+  }, [idx, safeImages[idx]])
 
   // wrap around
   const next = useCallback(() => {
@@ -42,15 +50,41 @@ export function ProductImageCarousel({ images, alt }: ProductImageCarouselProps)
       onKeyDown={onKeyDown}
     >
       {safeImages.length ? (
-        <Image
-          key={getImageSrc(safeImages[idx])}
-          src={getImageSrc(safeImages[idx])}
-          alt={alt}
-          fill
-          className="object-contain select-none"
-          sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-          priority={false}
-        />
+        imageError ? (
+          // Fallback to regular img tag ONLY if Next.js Image fails
+          <img
+            src={getImageSrc(safeImages[idx])}
+            alt={alt}
+            className="w-full h-full object-contain select-none"
+            style={{ position: 'absolute', inset: 0 }}
+            onError={() => {
+              console.error('Image failed to load even with fallback:', getImageSrc(safeImages[idx]))
+            }}
+            onLoad={() => {
+              setImageLoaded(true)
+              setImageError(false)
+            }}
+          />
+        ) : (
+          <Image
+            key={getImageSrc(safeImages[idx])}
+            src={getImageSrc(safeImages[idx])}
+            alt={alt}
+            fill
+            className="object-contain select-none"
+            sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+            priority={false}
+            unoptimized={safeImages[idx]?.includes('metal_inset')}
+            onError={(e) => {
+              console.error('Next.js Image failed, falling back to regular img:', getImageSrc(safeImages[idx]), e)
+              setImageError(true)
+            }}
+            onLoad={() => {
+              setImageLoaded(true)
+              setImageError(false)
+            }}
+          />
+        )
       ) : (
         <div className="absolute inset-0 grid place-items-center text-muted-foreground">
           <span className="px-3 text-sm">Image coming soon</span>

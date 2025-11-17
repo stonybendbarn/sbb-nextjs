@@ -59,11 +59,19 @@ function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string
   const safeImages = Array.isArray(images) ? images.filter(Boolean) : [];
   const hasMultiple = safeImages.length > 1;
   const [idx, setIdx] = useState(0);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Reset index when images array changes
   useEffect(() => {
     setIdx(0);
   }, [safeImages.length]);
+
+  // Reset loaded state when image changes
+  useEffect(() => {
+    setImageLoaded(false);
+    setImageError(false);
+  }, [idx, safeImages[idx]]);
 
   // wrap around
   const next = useCallback(() => {
@@ -93,15 +101,41 @@ function InventoryImageCarousel({ images, alt }: { images: string[]; alt: string
       onKeyDown={onKeyDown}
     >
       {safeImages.length && safeImages[idx] ? (
-        <Image
-          key={`${idx}-${getImageSrc(safeImages[idx])}`}               // force re-render when image or index changes
-          src={getImageSrc(safeImages[idx])}
-          alt={`${alt} - Image ${idx + 1}`}
-          fill
-          className="object-contain select-none"
-          sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
-          priority={false}
-        />
+        imageError ? (
+          // Fallback to regular img tag ONLY if Next.js Image fails
+          <img
+            src={getImageSrc(safeImages[idx])}
+            alt={`${alt} - Image ${idx + 1}`}
+            className="w-full h-full object-contain select-none"
+            style={{ position: 'absolute', inset: 0 }}
+            onError={() => {
+              console.error('Image failed to load even with fallback:', getImageSrc(safeImages[idx]))
+            }}
+            onLoad={() => {
+              setImageLoaded(true)
+              setImageError(false)
+            }}
+          />
+        ) : (
+          <Image
+            key={`${idx}-${getImageSrc(safeImages[idx])}`}               // force re-render when image or index changes
+            src={getImageSrc(safeImages[idx])}
+            alt={`${alt} - Image ${idx + 1}`}
+            fill
+            className="object-contain select-none"
+            sizes="(min-width:1024px) 33vw, (min-width:640px) 50vw, 100vw"
+            priority={false}
+            unoptimized={safeImages[idx]?.includes('metal_inset')}
+            onError={(e) => {
+              console.error('Next.js Image failed, falling back to regular img:', getImageSrc(safeImages[idx]), e)
+              setImageError(true)
+            }}
+            onLoad={() => {
+              setImageLoaded(true)
+              setImageError(false)
+            }}
+          />
+        )
       ) : (
         <div className="absolute inset-0 grid place-items-center text-muted-foreground">
           <span className="px-3 text-sm">Image coming soon</span>

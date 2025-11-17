@@ -12,6 +12,10 @@ import { Testimonials } from "@/components/testimonials"
 import { fetchTestimonials, getTestimonialsByCategory } from "@/lib/testimonials-data"
 import type { Metadata } from "next"
 
+// Force dynamic rendering to ensure fresh data from database
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // Category metadata for page headers
 const categoryMetadata: Record<
   string,
