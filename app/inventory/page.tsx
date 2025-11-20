@@ -87,8 +87,8 @@ export default async function InventoryPage({
             <div className="flex items-center justify-center gap-2 mb-4">
               <Package className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold">Current Inventory</h1>
-            <p className="text-lg md:text-xl text-muted-foreground">Browse our available items ready to ship.</p>
+            <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold mb-6">Current Inventory</h1>
+            <p className="text-lg md:text-xl text-muted-foreground">Browse our available items ready to ship. To explore more styles or request a custom piece, visit our Products page.</p>
           </div>
         </div>
       </section>

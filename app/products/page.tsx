@@ -83,6 +83,7 @@ export default function ProductsPage() {
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground leading-relaxed text-pretty">
               Explore our collection of handcrafted wood products, each piece made with care and attention to detail.
+              Browse the styles we offer below. To see what’s in stock and ready to ship, visit the Inventory page.
             </p>
           </div>
         </div>
